@@ -5,6 +5,7 @@
 | ---------------- | --------- | ------------------ |
 | Vasco Vieira         | 202307797 | up202307797@up.pt                |
 | Leonardo Carvalho         | 202307152 | up202307152@up.pt                |
+| Tomás Costa Barros  | 202303664 | up202303664@up.pt |
 
 ----
 
