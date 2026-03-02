@@ -3,8 +3,8 @@
 ## Group T0xG0y
 | Name             | Number    | E-Mail             |
 | ---------------- | --------- | ------------------ |
-| John Doe         | 201901010 | ...                |
-| Jane Doe         | 201901011 | ...                |
+| Vasco Vieira         | 202307797 | up202307797@up.pt                |
+| Leonardo Carvalho         | 202307152 | up202307152@up.pt                |
 
 ----
 
