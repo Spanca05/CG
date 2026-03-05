@@ -4,6 +4,7 @@ import { MyTriangle } from "./MyTriangle.js";
 import { MyParallelogram } from "./MyParallelogram.js";
 import { MyTriangleSmall } from "./MyTriangleSmall.js";
 import { MyTriangleBig } from "./MyTriangleBig.js";
+import { MyTangram } from "./MyTangram.js";
 
 /**
  * MyScene
@@ -38,6 +39,7 @@ export class MyScene extends CGFscene {
         this.yellowParallelogram = new MyParallelogram(this);
         this.triangleSmall = new MyTriangleSmall(this);
         this.triangleBig = new MyTriangleBig(this);
+        this.tangram = new MyTangram(this);
 
         //Objects connected to MyInterface
         this.displayAxis = true;
@@ -118,74 +120,7 @@ export class MyScene extends CGFscene {
         // ---- BEGIN Primitive drawing section
 
         // Draw Tangram
-        if (this.displayTangram) {
-            // Pink Triangle
-            this.pushMatrix();
-            //! Porque é que com .rotate(), o ângulo tem que ser o inverso em relação a se for com matrizes?
-            this.translate(-Math.sqrt(2) / 2, Math.sqrt(2) / 2, 0);
-            this.rotate(-Math.PI/4, 0, 0, 1);
-            this.pinkTriangle.display();
-            this.popMatrix();
-
-            // Green Diamond
-            this.pushMatrix();
-            let tx = 0.0;
-            let ty = Math.sqrt(2);
-            let tz = 0.0;
-            let T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            let cos = Math.cos(Math.PI / 4);
-            let sin = Math.sin(Math.PI / 4);
-            let Rz = [
-                cos, -sin, 0, 0,
-                sin, cos, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Rz);
-            this.greenDiamond.display();
-            this.popMatrix();
-
-            // Purple Triangle Small
-            this.pushMatrix();       
-            this.translate(2 * Math.sqrt(2) / 2, 2 * Math.sqrt(2) / 2, 0);
-            this.rotate(3 * Math.PI / 4, 0, 0, 1);
-            this.purpleTriangleSmall.display();
-            this.popMatrix();
-
-            // Red Triangle Small
-            this.pushMatrix();
-            this.rotate(Math.PI / 4, 0, 0, 1);
-            this.redTriangleSmall.display();
-            this.popMatrix();
-
-            // Yellow Parallelogram
-            this.pushMatrix();
-            this.translate(-Math.sqrt(2) / 2, -Math.sqrt(2) / 2, 0);
-            this.rotate(Math.PI, 0, 1, 0);
-            this.rotate(3 * Math.PI / 4, 0, 0, 1);
-            this.yellowParallelogram.display();
-            this.popMatrix();
-
-            // Blue Triangle Big
-            this.pushMatrix();
-            this.translate(-2.0 - Math.sqrt(2) / 2, - Math.sqrt(2) / 2, 0);
-            this.rotate(-Math.PI / 2, 0, 0, 1);
-            this.blueTriangleBig.display();
-            this.popMatrix();
-
-            // Orange Triangle Big
-            this.pushMatrix();
-            this.translate(2.0 + Math.sqrt(2) / 2, -Math.sqrt(2) / 2, 0);
-            this.rotate(Math.PI / 2, 0, 0, 1);
-            this.orangeTriangleBig.display();
-            this.popMatrix();
-        }
+        if (this.displayTangram) this.tangram.display();
 
         // Draw Individual Figures
         // Display Triangle
