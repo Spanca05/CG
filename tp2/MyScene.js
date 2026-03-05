@@ -49,6 +49,7 @@ export class MyScene extends CGFscene {
         this.displayTriangleSmall = false;
         this.displayTriangleBig = false;
         this.displayPurpleTriangle = false;
+        this.displayRedTriangleSmall = false;
         this.displayOrangeTriangle = false;
     }
     initLights() {
@@ -120,8 +121,16 @@ export class MyScene extends CGFscene {
         if (this.displayTangram) {
             // Pink Triangle
             this.pushMatrix();
-            let tx = - Math.sqrt(2) / 2;
-            let ty = Math.sqrt(2) / 2;
+            //! Porque é que com .rotate(), o ângulo tem que ser o inverso em relação a se for com matrizes?
+            this.translate(-Math.sqrt(2) / 2, Math.sqrt(2) / 2, 0);
+            this.rotate(-Math.PI/4, 0, 0, 1);
+            this.pinkTriangle.display();
+            this.popMatrix();
+
+            // Green Diamond
+            this.pushMatrix();
+            let tx = 0.0;
+            let ty = Math.sqrt(2);
             let tz = 0.0;
             let T = [
                 1, 0, 0, 0,
@@ -139,159 +148,41 @@ export class MyScene extends CGFscene {
             ];
             this.multMatrix(T);
             this.multMatrix(Rz);
-            this.pinkTriangle.display();
-            this.popMatrix();
-
-            // Green Diamond
-            this.pushMatrix();
-            tx = 0.0;
-            ty = Math.sqrt(2);
-            tz = 0.0;
-            T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            cos = Math.cos(Math.PI / 4);
-            sin = Math.sin(Math.PI / 4);
-            Rz = [
-                cos, -sin, 0, 0,
-                sin, cos, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Rz);
             this.greenDiamond.display();
             this.popMatrix();
 
             // Purple Triangle Small
-            this.pushMatrix();
-            tx = 2 * Math.sqrt(2) / 2;
-            ty = 2 * Math.sqrt(2) / 2;
-            tz = 0.0;
-            T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            cos = Math.cos(-3 * Math.PI / 4);
-            sin = Math.sin(- 3 * Math.PI / 4);
-            Rz = [
-                cos, -sin, 0, 0,
-                sin, cos, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Rz);
+            this.pushMatrix();       
+            this.translate(2 * Math.sqrt(2) / 2, 2 * Math.sqrt(2) / 2, 0);
+            this.rotate(3 * Math.PI / 4, 0, 0, 1);
             this.purpleTriangleSmall.display();
             this.popMatrix();
 
             // Red Triangle Small
             this.pushMatrix();
-            tx = 0.0;
-            ty = 0.0;
-            tz = 0.0;
-            T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            cos = Math.cos(-Math.PI / 4);
-            sin = Math.sin(-Math.PI / 4);
-            Rz = [
-                cos, -sin, 0, 0,
-                sin, cos, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Rz);
+            this.rotate(Math.PI / 4, 0, 0, 1);
             this.redTriangleSmall.display();
             this.popMatrix();
 
             // Yellow Parallelogram
             this.pushMatrix();
-            tx = -Math.sqrt(2) / 2;
-            ty = -Math.sqrt(2) / 2;
-            tz = 0.0;
-            T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            let cosY = Math.cos(-Math.PI);
-            let sinY = Math.sin(-Math.PI);
-            let Ry = [
-                cosY, 0, sinY, 0,
-                0, 1, 0, 0,
-                -sinY, 0, cosY, 0,
-                0, 0, 0, 1
-            ];
-            let cosZ = Math.cos(-3 * Math.PI / 4);
-            let sinZ = Math.sin(-3 * Math.PI / 4);
-            let Rz2 = [
-                cosZ, -sinZ, 0, 0,
-                sinZ, cosZ, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Ry);
-            this.multMatrix(Rz2);
+            this.translate(-Math.sqrt(2) / 2, -Math.sqrt(2) / 2, 0);
+            this.rotate(Math.PI, 0, 1, 0);
+            this.rotate(3 * Math.PI / 4, 0, 0, 1);
             this.yellowParallelogram.display();
             this.popMatrix();
 
             // Blue Triangle Big
             this.pushMatrix();
-            tx = -2.0 - Math.sqrt(2) / 2;
-            ty = 0.0 - Math.sqrt(2) / 2;
-            tz = 0.0;
-            T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            cos = Math.cos(Math.PI / 2);
-            sin = Math.sin(Math.PI / 2);
-            Rz = [
-                cos, -sin, 0, 0,
-                sin, cos, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Rz);
+            this.translate(-2.0 - Math.sqrt(2) / 2, - Math.sqrt(2) / 2, 0);
+            this.rotate(-Math.PI / 2, 0, 0, 1);
             this.blueTriangleBig.display();
             this.popMatrix();
 
             // Orange Triangle Big
             this.pushMatrix();
-            tx = 2.0 + Math.sqrt(2) / 2;
-            ty = -Math.sqrt(2) / 2;
-            tz = 0.0;
-            T = [
-                1, 0, 0, 0,
-                0, 1, 0, 0,
-                0, 0, 1, 0,
-                tx, ty, tz, 1
-            ];
-            cos = Math.cos(-Math.PI / 2);
-            sin = Math.sin(-Math.PI / 2);
-            Rz = [
-                cos, -sin, 0, 0,
-                sin, cos, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            ];
-            this.multMatrix(T);
-            this.multMatrix(Rz);
+            this.translate(2.0 + Math.sqrt(2) / 2, -Math.sqrt(2) / 2, 0);
+            this.rotate(Math.PI / 2, 0, 0, 1);
             this.orangeTriangleBig.display();
             this.popMatrix();
         }
@@ -372,6 +263,32 @@ export class MyScene extends CGFscene {
             this.multMatrix(T);
             this.multMatrix(Rz);
             this.purpleTriangleSmall.display();
+            this.popMatrix();
+        }
+
+        // Display Red Triangle Small
+        if (this.displayRedTriangleSmall) {
+            this.pushMatrix();
+            let tx = 0.0;
+            let ty = 0.0;
+            let tz = 0.0;
+            let T = [
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                tx, ty, tz, 1
+            ];
+            let cos = Math.cos(-Math.PI / 4);
+            let sin = Math.sin(-Math.PI / 4);
+            let Rz = [
+                cos, -sin, 0, 0,
+                sin, cos, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1
+            ];
+            this.multMatrix(T);
+            this.multMatrix(Rz);
+            this.redTriangleSmall.display();
             this.popMatrix();
         }
 
