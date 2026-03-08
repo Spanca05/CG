@@ -1,6 +1,6 @@
 # CG 2025/2026
 
-## Group T0xG0y
+## Group T11G08
 | Name             | Number    | E-Mail             |
 | ---------------- | --------- | ------------------ |
 | Vasco Vieira         | 202307797 | up202307797@up.pt                |

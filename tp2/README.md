@@ -2,69 +2,43 @@
 
 ## Group T11G08
 
-## TP 1 Notes
-
-(add your main observations/remarks about your experiments here, in a bulleted list, and remove this line. Some examples below)
-
-### Exercise 1
-
-#### MyTriangle
-
-A new subclass of `CGFObject` named `MyTriangle` was implemented in `MyTriangle.js`.
-
-The class defines a right triangle in the XY plane with side length 2 units, according to Figure 2 of the assignment.  
-
-The geometry is defined using:
-
-- `vertices`
-- `indexes`
-
-and rendered using `gl.TRIANGLES`.
-
-The object is instantiated in `MyScene` and displayed conditionally in the `display()` method.
-
-#### GUI Controls
-
-In `MyInterface`, new checkbox controllers were added to manage the visibility of the following objects:
-
-- Diamond (`displayDiamond`)
-- Triangle (`displayTriangle`)
-- Parallelogram (`displayParallelogram`)
-- Small Triangle (`displayTriangleSmall`)
-- Big Triangle (`displayTriangleBig`)
-
-The corresponding boolean variables were initialized in `MyScene` and used to conditionally render each object inside the `display()` method.
-
-#### MyParallelogram
-
-A new subclass `MyParallelogram` was created in `MyParallelogram.js`.
-
-The parallelogram:
-
-- Has height 1 unit
-- Has total width 3 units
-- Has its leftmost vertex at the origin (0,0,0)
-
-To ensure it is **double-sided**, reversed index ordering was included so that the geometry is visible from both sides.
-
+## TP 2 Notes
 
 ### Exercise 2
 
-Two additional primitives were implemented:
+- Recreated the tangram layout from the group reference image.
+- Placed `MyDiamond` in the XY plane using explicit matrix declaration and `multMatrix()`.
+- Placed the remaining pieces using WebCGF transformation functions (`translate`, `rotate`, `scale`) with `pushMatrix()` and `popMatrix()` to reset the local reference.
+- Created `MyTangram` as a composite `CGFobject` and moved piece-placement logic from `MyScene` to `MyTangram.display()`.
 
-- `MyTriangleSmall`
-- `MyTriangleBig`
+### Exercise 3
 
-Each class defines its respective vertex and index arrays to match Figures 5 and 6 of the assignment.
+- Implemented `MyUnitCube` as a single triangle mesh.
+- Defined 8 cube vertices with coordinates in the range `[-0.5, 0.5]` and 12 triangles for the 6 faces.
+- Imported `MyUnitCube` in `MyScene`, instantiated it, and displayed it in the scene.
+- Re-enabled tangram rendering and applied transformations so the cube acts as a base behind the tangram.
+- Rotated/transformed the tangram-base set to be parallel to the XZ plane with the top-left base vertex at `(0, 0, 0)`.
 
-Their visibility is also controlled via GUI checkboxes.
+### Exercise 4
 
-
-- In exercise 1 we observed X
-- In exercise 2 we had difficulties in Y
+- Implemented `MyQuad` as a unit square centered at the origin.
+- Implemented `MyUnitCubeQuad` by drawing one `MyQuad` six times with the required translations and rotations.
+- Replaced the previous cube in the scene by applying the same placement transformations to `MyUnitCubeQuad`.
 
 ## Screenshot (n = 1)
 
-The following image corresponds to the required capture for this assignment.
+Exercise 2
 
-![Screenshot 1](screenshots/cg-t11g08-tp1-1.png)
+![Screenshot 1](screenshots/cg-t11g08-tp2-1.png)
+
+## Screenshot (n = 2)
+
+Exercise 3
+
+![Screenshot 2](screenshots/cg-t11g08-tp2-2.png)
+
+## Screenshot (n = 3)
+
+Exercise 4
+
+![Screenshot 3](screenshots/cg-t11g08-tp2-3.png)
