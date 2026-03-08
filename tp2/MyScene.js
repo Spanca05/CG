@@ -122,12 +122,14 @@ export class MyScene extends CGFscene {
     // ---- BEGIN Primitive drawing section
 
     // Display Tangram, Unit Cube and Unit Cube Quad
-    if (this.displayTangram || this.displayUnitCube || this.displayUnitCubeQuad) {
+    if (
+      this.displayTangram ||
+      this.displayUnitCube ||
+      this.displayUnitCubeQuad
+    ) {
       this.pushMatrix();
       // Rotate the Tangram and the base(unit cube) so it is parallel to the XZ plane
       this.rotate(-Math.PI / 2, 1, 0, 0);
-
-      
 
       if (this.displayUnitCube) {
         this.pushMatrix();
@@ -143,9 +145,9 @@ export class MyScene extends CGFscene {
         this.translate(0.5, -0.5, -0.5);
         this.unitCubeQuad.display();
         this.popMatrix();
-     }
+      }
 
-     if (this.displayTangram) this.tangram.display(); // Displaying it after the cube, so there isnt a Z-fight (overlap)
+      if (this.displayTangram) this.tangram.display(); // Displaying it after the cube, so there isnt a Z-fight (overlap) when looking from above
 
       this.popMatrix();
     }
@@ -271,6 +273,5 @@ export class MyScene extends CGFscene {
     }
 
     this.popMatrix();
-    // ---- END Primitive drawing section
   }
 }
