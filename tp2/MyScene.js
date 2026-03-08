@@ -5,6 +5,7 @@ import { MyParallelogram } from "./MyParallelogram.js";
 import { MyTriangleSmall } from "./MyTriangleSmall.js";
 import { MyTriangleBig } from "./MyTriangleBig.js";
 import { MyTangram } from "./MyTangram.js";
+import { MyUnitCubeQuad } from "./MyUnitCubeQuad.js";
 
 /**
  * MyScene
@@ -40,6 +41,7 @@ export class MyScene extends CGFscene {
         this.triangleSmall = new MyTriangleSmall(this);
         this.triangleBig = new MyTriangleBig(this);
         this.tangram = new MyTangram(this);
+        this.unitCubeQuad = new MyUnitCubeQuad(this);
 
         //Objects connected to MyInterface
         this.displayAxis = true;
@@ -53,6 +55,7 @@ export class MyScene extends CGFscene {
         this.displayPurpleTriangle = false;
         this.displayRedTriangleSmall = false;
         this.displayOrangeTriangle = false;
+        this.displayUnitCubeQuad = false;
     }
     initLights() {
         this.lights[0].setPosition(15, 2, 5, 1);
@@ -314,6 +317,13 @@ export class MyScene extends CGFscene {
             this.multMatrix(T);
             this.multMatrix(Rz);
             this.orangeTriangleBig.display();
+            this.popMatrix();
+        }
+        
+        // Display Unit Cube Quad
+        if (this.displayUnitCubeQuad) {
+            this.pushMatrix();
+            this.unitCubeQuad.display();
             this.popMatrix();
         }
 
