@@ -6,6 +6,7 @@ import { MyTriangleSmall } from "./MyTriangleSmall.js";
 import { MyTriangleBig } from "./MyTriangleBig.js";
 import { MyTangram } from "./MyTangram.js";
 import { MyUnitCube } from "./MyUnitCube.js";
+import { MyUnitCubeQuad } from "./MyUnitCubeQuad.js";
 
 /**
  * MyScene
@@ -42,6 +43,7 @@ export class MyScene extends CGFscene {
     this.triangleBig = new MyTriangleBig(this);
     this.tangram = new MyTangram(this);
     this.unitCube = new MyUnitCube(this);
+    this.unitCubeQuad = new MyUnitCubeQuad(this);
 
     //Objects connected to MyInterface
     this.displayAxis = true;
@@ -56,6 +58,7 @@ export class MyScene extends CGFscene {
     this.displayRedTriangleSmall = false;
     this.displayOrangeTriangle = false;
     this.displayUnitCube = true;
+    this.displayUnitCubeQuad = false;
   }
   initLights() {
     this.lights[0].setPosition(15, 2, 5, 1);
@@ -118,12 +121,15 @@ export class MyScene extends CGFscene {
 
     // ---- BEGIN Primitive drawing section
 
-    if (this.displayTangram || this.displayUnitCube) {
+    // Display Tangram, Unit Cube and Unit Cube Quad
+    if (
+      this.displayTangram ||
+      this.displayUnitCube ||
+      this.displayUnitCubeQuad
+    ) {
       this.pushMatrix();
       // Rotate the Tangram and the base(unit cube) so it is parallel to the XZ plane
       this.rotate(-Math.PI / 2, 1, 0, 0);
-
-      if (this.displayTangram) this.tangram.display();
 
       if (this.displayUnitCube) {
         this.pushMatrix();
@@ -132,6 +138,16 @@ export class MyScene extends CGFscene {
         this.unitCube.display();
         this.popMatrix();
       }
+
+      if (this.displayUnitCubeQuad) {
+        this.pushMatrix();
+        // Move only the Unit Cube Quad, so it is the same as the Unit Cube
+        this.translate(0.5, -0.5, -0.5);
+        this.unitCubeQuad.display();
+        this.popMatrix();
+      }
+
+      if (this.displayTangram) this.tangram.display(); // Displaying it after the cube, so there isnt a Z-fight (overlap) when looking from above
 
       this.popMatrix();
     }
@@ -257,7 +273,5 @@ export class MyScene extends CGFscene {
     }
 
     this.popMatrix();
-
-    // ---- END Primitive drawing section
   }
 }

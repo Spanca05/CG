@@ -12,7 +12,6 @@ export class MyTangram extends CGFobject {
 
     display() {
         this.scene.pushMatrix();
-        //! Porque é que com .rotate(), o ângulo tem que ser o inverso em relação a se for com matrizes?
         this.scene.translate(-Math.sqrt(2) / 2, Math.sqrt(2) / 2, 0);
         this.scene.rotate(-Math.PI / 4, 0, 0, 1);
         this.scene.pinkTriangle.display();
