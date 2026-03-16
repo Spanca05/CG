@@ -9,6 +9,7 @@ import { MyTriangle } from "./tangram/MyTriangle.js";
 import { MyTriangleBig } from "./tangram/MyTriangleBig.js";
 import { MyTriangleSmall } from "./tangram/MyTriangleSmall.js";
 import { MyParallelogram } from "./tangram/MyParallelogram.js";
+import { MyPrism } from "./MyPrism.js";
 
 /**
 * MyScene
@@ -51,11 +52,12 @@ export class MyScene extends CGFscene {
 
         this.MyTangram = new MyTangram(this);
         this.MyUnitCube = new MyUnitCube(this);
+        this.MyPrism = new MyPrism(this, 8, 20);
 
-        this.objects = [this.plane, this.pyramid, this.cone, this.MyTangram, this.MyUnitCube];
+        this.objects = [this.plane, this.pyramid, this.cone, this.MyTangram, this.MyUnitCube, this.MyPrism];
 
         // Labels and ID's for object selection on MyInterface
-        this.objectIDs = { 'Plane': 0, 'Pyramid': 1, 'Cone': 2, 'Tangram': 3, 'Unit Cube': 4 };
+        this.objectIDs = { 'Plane': 0, 'Pyramid': 1, 'Cone': 2, 'Tangram': 3, 'Unit Cube': 4, 'Prism': 5 };
 
         //Other variables connected to MyInterface
         this.selectedObject = 0;
@@ -129,8 +131,18 @@ export class MyScene extends CGFscene {
 
     };
 
-    updateObjectComplexity() {
-        this.objects[this.selectedObject].updateBuffers(this.objectComplexity);
+    updateObjectComplexity(complexity = undefined) {
+        const selected = this.objects[this.selectedObject];
+
+        if (typeof complexity === 'number') {
+            selected.updateBuffers(complexity);
+        } else {
+            if (selected === this.MyPrism) {
+                selected.updateBuffers();
+            } else {
+                selected.updateBuffers(this.objectComplexity);
+            }
+        }
     }
 
 
@@ -179,7 +191,7 @@ export class MyScene extends CGFscene {
         this.materials = [this.material1, this.material2, this.material3, this.customMaterial, this.material4];
 
         // Labels and ID's for object selection on MyInterface
-        this.materialIDs = { 'Red Ambient': 0, 'Red Diffuse': 1, 'Red Specular': 2, 'Custom': 3, 'Wood': 4};
+        this.materialIDs = { 'Red Ambient': 0, 'Red Diffuse': 1, 'Red Specular': 2, 'Custom': 3, 'Wood': 4 };
     }
     display() {
         // ---- BEGIN Background, camera and axis setup
