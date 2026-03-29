@@ -12,6 +12,7 @@ import { MyParallelogram } from "./MyParallelogram.js";
 import { MyTriangle } from "./MyTriangle.js";
 import { MyTriangleBig } from "./MyTriangleBig.js";
 import { MyTriangleSmall } from "./MyTriangleSmall.js";
+import { MyUnitCubeQuad } from "./MyUnitCubeQuad.js";
 
 /**
  * MyScene
@@ -40,6 +41,7 @@ export class MyScene extends CGFscene {
     this.axis = new CGFaxis(this);
     this.quad = new MyQuad(this);
     this.tangram = new MyTangram(this);
+    this.cube = null;
 
     // Tangram pieces used by MyTangram.display()
     this.greenDiamond = new MyDiamond(this);
@@ -72,12 +74,27 @@ export class MyScene extends CGFscene {
     this.texture1 = new CGFtexture(this, "images/board.jpg");
     this.texture2 = new CGFtexture(this, "images/floor.png");
     this.texture3 = new CGFtexture(this, "images/window.jpg");
+
+    this.mineSideTexture = new CGFtexture(this, "images/mineSide.png");
+    this.mineTopTexture = new CGFtexture(this, "images/mineTop.png");
+    this.mineBottomTexture = new CGFtexture(this, "images/mineBottom.png");
+
+    this.cube = new MyUnitCubeQuad(
+      this,
+      this.mineTopTexture,
+      this.mineSideTexture,
+      this.mineSideTexture,
+      this.mineSideTexture,
+      this.mineSideTexture,
+      this.mineBottomTexture,
+    );
     //-------
 
     //-------Objects connected to MyInterface
     this.displayAxis = true;
     this.displayQuad = true;
     this.displayTangram = false;
+    this.displayCube = true;
     this.scaleFactor = 5;
     this.selectedTexture = -1;
     this.wrapS = 0;
@@ -168,6 +185,13 @@ export class MyScene extends CGFscene {
 
     if (this.displayTangram) {
       this.tangram.display();
+    }
+
+    if (this.displayCube) {
+      this.pushMatrix();
+      this.translate(0, -0.5, 0);
+      this.cube.display();
+      this.popMatrix();
     }
 
     // ---- END Primitive drawing section
