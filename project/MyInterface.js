@@ -20,6 +20,12 @@ export class MyInterface extends CGFinterface {
     skyFolder.add(this.scene, "skyScale", 50, 400, 1).name("Size");
     skyFolder.open();
 
+    const cloudsFolder = this.gui.addFolder("Clouds");
+    cloudsFolder.add(this.scene, "showClouds").name("Visible");
+    cloudsFolder.add(this.scene, "cloudsScale", 120, 260, 1).name("Size");
+    cloudsFolder.add(this.scene, "cloudRotationSpeedDegPerSec", 0, 5, 0.05).name("Rotation Speed");
+    cloudsFolder.open();
+
     const sunFolder = this.gui.addFolder("Sun");
     sunFolder.add(this.scene, "sunEnabled").name("Enabled");
     sunFolder.add(this.scene, "showSunMarker").name("Show Marker");
