@@ -8,6 +8,7 @@ import {
 import { MySky } from "./MySky.js";
 import { MyClouds } from "./MyClouds.js";
 import { MySun } from "./MySun.js";
+import { MyTerrain } from "./MyTerrain.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -29,7 +30,7 @@ export class MyScene extends CGFscene {
         this.sunElevationDeg = 35;
         this.sunIntensity = 1.0;
         this.showSunMarker = true;
-        this.sunMarkerSize = 8;
+        this.sunMarkerSize = 10;
     }
 
     init(application) {
@@ -48,6 +49,8 @@ export class MyScene extends CGFscene {
         this.sky = new MySky(this, 40, 20);
         this.clouds = new MyClouds(this, 40, 20);
         this.sunMarker = new MySun(this, 24, 24);
+        this.sunAuraMarker = new MySun(this, 24, 24);
+        this.terrain = new MyTerrain(this, 420, 120, 1.2);
 
         this.skyAppearance = new CGFappearance(this);
         this.skyAppearance.setAmbient(0.7, 0.8, 1.0, 1.0);
@@ -60,11 +63,18 @@ export class MyScene extends CGFscene {
         this.skyAppearance.setTextureWrap("CLAMP_TO_EDGE", "CLAMP_TO_EDGE");
 
         this.sunAppearance = new CGFappearance(this);
-        this.sunAppearance.setAmbient(1.0, 0.85, 0.35, 1.0);
-        this.sunAppearance.setDiffuse(1.0, 0.85, 0.35, 1.0);
+        this.sunAppearance.setAmbient(1.0, 0.78, 0.25, 1.0);
+        this.sunAppearance.setDiffuse(1.0, 0.78, 0.25, 1.0);
         this.sunAppearance.setSpecular(0.0, 0.0, 0.0, 1.0);
-        this.sunAppearance.setEmission(1.0, 0.7, 0.2, 1.0);
+        this.sunAppearance.setEmission(1.0, 0.65, 0.18, 1.0);
         this.sunAppearance.setShininess(1.0);
+
+        this.sunAuraAppearance = new CGFappearance(this);
+        this.sunAuraAppearance.setAmbient(1.0, 0.85, 0.35, 0.18);
+        this.sunAuraAppearance.setDiffuse(1.0, 0.85, 0.35, 0.18);
+        this.sunAuraAppearance.setSpecular(0, 0, 0, 1);
+        this.sunAuraAppearance.setEmission(1.0, 0.75, 0.25, 0.18);
+        this.sunAuraAppearance.setShininess(1.0);
 
         this.cloudTexture = new CGFtexture(this, "./textures/cloudTexture.png");
 
@@ -77,6 +87,16 @@ export class MyScene extends CGFscene {
         this.cloudAppearance.setTextureWrap("REPEAT", "REPEAT");
 
         this.setUpdatePeriod(50);
+
+        this.terrainAppearance = new CGFappearance(this);
+        this.terrainTexture = new CGFtexture(this, "./textures/ground.jpg")
+
+        this.terrainAppearance.setAmbient(0.9, 0.9, 0.9, 1);
+        this.terrainAppearance.setDiffuse(1.0, 1.0, 1.0, 1);
+        this.terrainAppearance.setSpecular(0.1, 0.1, 0.1, 1);
+        this.terrainAppearance.setShininess(10);
+        this.terrainAppearance.setTexture(this.terrainTexture);
+        this.terrainAppearance.setTextureWrap("REPEAT", "REPEAT");
 
     }
 
@@ -194,11 +214,48 @@ export class MyScene extends CGFscene {
                 sunDir.y * sunDistance,
                 sunDir.z * sunDistance,
             );
-            this.scale(this.sunMarkerSize, this.sunMarkerSize, this.sunMarkerSize);
+            this.scale(
+                this.sunMarkerSize * 1.3,
+                this.sunMarkerSize * 1.3,
+                this.sunMarkerSize * 1.3,
+            );
+
+            this.gl.enable(this.gl.BLEND);
+            this.gl.blendColor(1.0, 0.85, 0.3, 0.18);
+            this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+            this.gl.depthMask(false);
+
+            this.sunAuraAppearance.apply();
+            this.sunAuraMarker.display();
+
+            this.gl.depthMask(true);
+            this.gl.disable(this.gl.BLEND);
+            this.popMatrix();
+
+            this.pushMatrix();
+            this.translate(
+                sunDir.x * sunDistance,
+                sunDir.y * sunDistance,
+                sunDir.z * sunDistance,
+            );
+            this.scale(
+                this.sunMarkerSize,
+                this.sunMarkerSize,
+                this.sunMarkerSize,
+            );
+
             this.sunAppearance.apply();
             this.sunMarker.display();
+
             this.popMatrix();
         }
+
+        this.pushMatrix();
+        this.translate(0, -1, 0);
+        this.terrainAppearance.apply();
+        this.terrain.display();
+
+        this.popMatrix();
 
         if (this.displayAxis) {
             this.axis.display();
