@@ -32,8 +32,9 @@ export class MyClouds extends CGFobject {
 
         this.vertices.push(x, y, z);
 
-        // Inward normals for an inside-view sky dome.
-        this.normals.push(-x, -y, -z);
+        // Normals point outward so lighting works correctly even when
+        // the dome is viewed from the inside.
+        this.normals.push(x, y, z);
         this.texCoords.push(u, 1 - v);
       }
     }

@@ -8,7 +8,9 @@ import {
 import { MySky } from "./MySky.js";
 import { MyClouds } from "./MyClouds.js";
 import { MySun } from "./MySun.js";
+import { MySphere } from "./MySphere.js";
 import { MyTerrain } from "./MyTerrain.js";
+import { MyRock } from "./MyRock.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -51,6 +53,13 @@ export class MyScene extends CGFscene {
         this.sunMarker = new MySun(this, 24, 24);
         this.sunAuraMarker = new MySun(this, 24, 24);
         this.terrain = new MyTerrain(this, 420, 120, 1.2);
+        this.sphere = new MySphere(this, 8, 32, 32);
+        this.rocks = [];
+        this.rocks.push(new MyRock(this, 16, 10, 1));
+        this.rocks.push(new MyRock(this, 12, 8, 2));
+        this.rocks.push(new MyRock(this, 14, 9, 3));
+        this.rocks.push(new MyRock(this, 13, 9, 4));
+        this.rocks.push(new MyRock(this, 15, 10, 5));
 
         this.skyAppearance = new CGFappearance(this);
         this.skyAppearance.setAmbient(0.7, 0.8, 1.0, 1.0);
@@ -98,6 +107,19 @@ export class MyScene extends CGFscene {
         this.terrainAppearance.setTexture(this.terrainTexture);
         this.terrainAppearance.setTextureWrap("REPEAT", "REPEAT");
 
+        // Simple appearance for the test sphere (base for rocks)
+        this.sphereAppearance = new CGFappearance(this);
+        this.sphereAppearance.setAmbient(0.6, 0.6, 0.6, 1.0);
+        this.sphereAppearance.setDiffuse(0.6, 0.6, 0.6, 1.0);
+        this.sphereAppearance.setSpecular(0.05, 0.05, 0.05, 1.0);
+        this.sphereAppearance.setShininess(5.0);
+
+        this.rockAppearence = new CGFappearance(this);
+        this.rockAppearence.setAmbient(0.35, 0.35, 0.35, 1);
+        this.rockAppearence.setDiffuse(0.45, 0.45, 0.45, 1);
+        this.rockAppearence.setSpecular(0.08, 0.08, 0.08, 1);
+        this.rockAppearence.setShininess(8);
+
     }
 
     initLights() {
@@ -121,12 +143,11 @@ export class MyScene extends CGFscene {
     updateSunLight() {
         const sunDir = this.getSunDirection();
 
-        // In WebGL's fixed-light convention, directional light points from this vector toward the scene.
-        // Use the opposite of the visual sun direction so illumination matches the sun marker position.
-        this.lights[0].setPosition(-sunDir.x, -sunDir.y, -sunDir.z, 0);
+        // Set directional light position to match visual sun direction.
+        this.lights[0].setPosition(sunDir.x, sunDir.y, sunDir.z, 0);
 
         const i = Math.max(0, this.sunIntensity);
-        this.lights[0].setAmbient(0.12 * i, 0.12 * i, 0.14 * i, 1);
+        this.lights[0].setAmbient(0.25 * i, 0.24 * i, 0.22 * i, 1);
         this.lights[0].setDiffuse(0.95 * i, 0.92 * i, 0.85 * i, 1);
         this.lights[0].setSpecular(0.25 * i, 0.24 * i, 0.22 * i, 1);
 
@@ -256,6 +277,17 @@ export class MyScene extends CGFscene {
         this.terrain.display();
 
         this.popMatrix();
+
+        this.rocks.forEach((rock, i) => {
+            this.pushMatrix();
+            const x = 5 + (i % 3) * 8;
+            const z = 0 + Math.floor(i / 3) * 10;
+            this.translate(x, 1, z);
+            this.scale(2.5 - i * 0.1, 1.4, 2.0);
+            this.rockAppearence.apply();
+            rock.display();
+            this.popMatrix();
+        });
 
         if (this.displayAxis) {
             this.axis.display();
