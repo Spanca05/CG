@@ -11,6 +11,8 @@ import { MySun } from "./MySun.js";
 import { MySphere } from "./MySphere.js";
 import { MyTerrain } from "./MyTerrain.js";
 import { MyRock } from "./MyRock.js";
+import { MyGrassBlade } from "./MyGrassBlade.js";
+import { MyGrassPatch } from "./MyGrassPatch.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -60,6 +62,8 @@ export class MyScene extends CGFscene {
         this.rocks.push(new MyRock(this, 14, 9, 3));
         this.rocks.push(new MyRock(this, 13, 9, 4));
         this.rocks.push(new MyRock(this, 15, 10, 5));
+        this.grassBlade = new MyGrassBlade(this, 0.08, 1.4, 0.12);
+        this.grassPatch = new MyGrassPatch(this, this.grassBlade, 18, 0.55, 0.16);
 
         this.skyAppearance = new CGFappearance(this);
         this.skyAppearance.setAmbient(0.7, 0.8, 1.0, 1.0);
@@ -114,11 +118,17 @@ export class MyScene extends CGFscene {
         this.sphereAppearance.setSpecular(0.05, 0.05, 0.05, 1.0);
         this.sphereAppearance.setShininess(5.0);
 
-        this.rockAppearence = new CGFappearance(this);
-        this.rockAppearence.setAmbient(0.35, 0.35, 0.35, 1);
-        this.rockAppearence.setDiffuse(0.45, 0.45, 0.45, 1);
-        this.rockAppearence.setSpecular(0.08, 0.08, 0.08, 1);
-        this.rockAppearence.setShininess(8);
+        this.rockAppearance = new CGFappearance(this);
+        this.rockAppearance.setAmbient(0.35, 0.35, 0.35, 1);
+        this.rockAppearance.setDiffuse(0.45, 0.45, 0.45, 1);
+        this.rockAppearance.setSpecular(0.08, 0.08, 0.08, 1);
+        this.rockAppearance.setShininess(8);
+
+        this.grassAppearance = new CGFappearance(this);
+        this.grassAppearance.setAmbient(0.1, 0.35, 0.08, 1);
+        this.grassAppearance.setDiffuse(0.2, 0.6, 0.15, 1);
+        this.grassAppearance.setSpecular(0, 0, 0 ,1);
+        this.grassAppearance.setShininess(1);
 
     }
 
@@ -284,10 +294,16 @@ export class MyScene extends CGFscene {
             const z = 0 + Math.floor(i / 3) * 10;
             this.translate(x, 1, z);
             this.scale(2.5 - i * 0.1, 1.4, 2.0);
-            this.rockAppearence.apply();
+            this.rockAppearance.apply();
             rock.display();
             this.popMatrix();
         });
+
+        this.pushMatrix();
+        this.translate(0, -0.45, 0);
+        this.grassAppearance.apply();
+        this.grassPatch.display();
+        this.popMatrix();
 
         if (this.displayAxis) {
             this.axis.display();
