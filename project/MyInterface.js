@@ -35,6 +35,11 @@ export class MyInterface extends CGFinterface {
     sunFolder.add(this.scene, "sunMarkerSize", 1, 20, 0.1).name("Marker Size");
     sunFolder.open();
 
+    const grassFolder = this.gui.addFolder("Grass");
+    grassFolder.add(this.scene, "showGrass").name("Visible");
+    grassFolder.add(this.scene, "grassScale", 0.1, 3, 0.05).name("Scale");
+    grassFolder.open();
+
     const flowersFolder = this.gui.addFolder("Flowers");
     flowersFolder.add(this.scene, "showFlowers").name("Visible");
     flowersFolder.add(this.scene, "flowersStemHeight", 1, 100, 1).name("Stem Height");

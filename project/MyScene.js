@@ -36,6 +36,9 @@ export class MyScene extends CGFscene {
     this.showSunMarker = true;
     this.sunMarkerSize = 10;
 
+    this.showGrass = true;
+    this.grassScale = 1.0;
+
     this.showFlowers = true;
     this.flowersStemHeight = 5;
     this.flowersNumberPetals = 5;
@@ -346,27 +349,33 @@ export class MyScene extends CGFscene {
       this.popMatrix();
     });
 
-    this.pushMatrix();
-    this.translate(0, -0.45, 0);
-    this.grassAppearance.apply();
-    this.grassPatch.display();
-    this.popMatrix();
+    if (this.showGrass) {
+      this.pushMatrix();
+      this.translate(0, -0.45, 0);
+      this.scale(this.grassScale, this.grassScale, this.grassScale);
+      this.grassAppearance.apply();
+      this.grassPatch.display();
+      this.popMatrix();
+    }
 
     // Render flowers
     if (this.showFlowers) {
       for (const transform of this.flowerTransforms) {
         this.pushMatrix();
-        this.translate(transform.x, 0, transform.z);
+        const rawGroundY = this.terrain
+          ? this.terrain.getHeight(transform.x, transform.z)
+          : 0;
+        const terrainDisplayOffset = -1;
+        const groundY = rawGroundY + terrainDisplayOffset;
+        this.translate(transform.x, groundY + 0.002, transform.z);
         this.rotate(transform.rotation, 0, 1, 0);
         this.scale(transform.scale, transform.scale, transform.scale);
         this.flowerAppearance.apply();
-        const tempFlower = new MyFlower(
-          this,
-          this.flowersStemHeight / 10.0,
-          this.flowersNumberPetals,
-          this.flowersNumberLeaves,
-          this.flowersColorVariation,
-        );
+        const stemH = this.flowersStemHeight / 10.0;
+        const petals = this.flowersNumberPetals;
+        const leaves = this.flowersNumberLeaves;
+        const colorVar = this.flowersColorVariation;
+        const tempFlower = new MyFlower(this, stemH, petals, leaves, colorVar);
         tempFlower.display();
         this.popMatrix();
       }
