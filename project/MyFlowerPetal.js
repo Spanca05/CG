@@ -9,43 +9,38 @@ export class MyFlowerPetal extends CGFobject {
   }
 
   initBuffers() {
-    // simple curved-ish petal made from two triangles (quad)
     this.vertices = [];
     this.indices = [];
     this.normals = [];
-    this.texCoords = [];
 
     const l = this.length;
     const w = this.width;
 
-    // coordinates oriented so petal points along +X; base at origin
-    const innerL = l * 0.18;
-    const midL = l * 0.55;
-    const tipL = l;
+    const segments = 12;
+    const centerY = 0.02;
+    const bulgeY = 0.02;
 
-    // inner left, inner right, mid up, tip
-    this.vertices.push(
-      innerL,
-      0.02,
-      -w * 0.5,
-      innerL,
-      0.02,
-      w * 0.5,
-      midL,
-      l * 0.15,
-      0,
-      tipL,
-      l * 0.05,
-      0,
-    );
+    for (let i = 0; i <= segments; i++) {
+      const t = i / segments;
+      const x = l * t;
+      const halfWidth = w * 0.55 * Math.sin(Math.PI * t);
+      const y = centerY + bulgeY * 0.5 * Math.sin(Math.PI * t);
 
-    // normals roughly upwards
-    for (let i = 0; i < 4; i++) this.normals.push(0, 1, 0);
-    this.texCoords.push(0, 1, 1, 1, 0.5, 0.3, 0.5, 0);
+      this.vertices.push(x, y, halfWidth);
+      this.vertices.push(x, y, -halfWidth);
 
-    // two triangles (innerLeft, innerRight, midUp) and (innerRight, tip, midUp)
-    this.indices.push(0, 1, 2);
-    this.indices.push(1, 3, 2);
+      this.normals.push(0, 1, 0, 0, 1, 0);
+    }
+
+    for (let i = 0; i < segments; i++) {
+      const topA = i * 2;
+      const bottomA = topA + 1;
+      const topB = topA + 2;
+      const bottomB = topA + 3;
+
+      this.indices.push(topA, topB, bottomA);
+      this.indices.push(bottomA, topB, bottomB);
+    }
 
     this.primitiveType = this.scene.gl.TRIANGLES;
     this.initGLBuffers();

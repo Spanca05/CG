@@ -15,7 +15,6 @@ export class MyFlowerStem extends CGFobject {
     this.vertices = [];
     this.indices = [];
     this.normals = [];
-    this.texCoords = [];
 
     const alpha = (2 * Math.PI) / this.slices;
     for (let stack = 0; stack <= this.stacks; stack++) {
@@ -26,7 +25,6 @@ export class MyFlowerStem extends CGFobject {
         const z = Math.sin(ang) * this.radius;
         this.vertices.push(x, y, z);
         this.normals.push(Math.cos(ang), 0, Math.sin(ang));
-        this.texCoords.push(s / this.slices, stack / this.stacks);
       }
     }
 

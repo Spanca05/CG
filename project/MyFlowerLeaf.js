@@ -12,13 +12,10 @@ export class MyFlowerLeaf extends CGFobject {
     this.vertices = [];
     this.indices = [];
     this.normals = [];
-    this.texCoords = [];
 
     const l = this.length;
     const w = this.width;
 
-    // Simple leaf (quad made of two triangles), pointing along +X
-    // base, upper mid, tip, lower mid
     this.vertices.push(
       0,
       0,
@@ -34,12 +31,10 @@ export class MyFlowerLeaf extends CGFobject {
       0,
     );
 
-    // Normals roughly up
     for (let i = 0; i < 4; i++) this.normals.push(0, 1, 0);
 
-    this.texCoords.push(0, 0.5, 0.5, 0, 1, 0.5, 0.5, 1);
-
     this.indices.push(0, 1, 2, 0, 2, 3);
+    this.indices.push(2, 1, 0, 3, 2, 0);
 
     this.primitiveType = this.scene.gl.TRIANGLES;
     this.initGLBuffers();

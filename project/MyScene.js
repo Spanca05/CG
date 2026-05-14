@@ -42,7 +42,7 @@ export class MyScene extends CGFscene {
     this.showFlowers = true;
     this.flowersStemHeight = 5;
     this.flowersNumberPetals = 5;
-    this.flowersNumberLeaves = 5;
+    this.flowersNumberLeaves = 2;
     this.flowersColorVariation = 0;
   }
 
