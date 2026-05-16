@@ -15,6 +15,7 @@ import { MyGrassBlade } from "./MyGrassBlade.js";
 import { MyGrassPatch } from "./MyGrassPatch.js";
 import { MyGrassField } from "./MyGrassField.js";
 import { MyPath } from "./MyPath.js";
+import { MyDirtPatch } from "./MyDirtPatch.js";
 
 export class MyScene extends CGFscene {
   constructor() {
@@ -72,10 +73,29 @@ export class MyScene extends CGFscene {
     this.rocks.push(new MyRock(this, 14, 9, 3));
     this.rocks.push(new MyRock(this, 13, 9, 4));
     this.rocks.push(new MyRock(this, 15, 10, 5));
-    this.grassBlade = new MyGrassBlade(this, 0.08, 1.4, 0.12);
-    this.grassPatch = new MyGrassPatch(this, this.grassBlade, 28, 1.35, 0.24);
-    this.grassField = new MyGrassField(this, this.grassPatch, this.terrain, 7, 7, 84, 84);
+    this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18);
+    this.grassPatch = new MyGrassPatch(this, this.grassBlade, 48, 0.9, 0.34);
+    const deadVariants = [
+      { ambient: [0.45, 0.36, 0.16], diffuse: [0.65, 0.55, 0.25] },
+      { ambient: [0.35, 0.28, 0.12], diffuse: [0.55, 0.45, 0.18] },
+    ];
+    this.deadGrassPatch = new MyGrassPatch(this, this.grassBlade, 24, 0.6, 0.28, deadVariants);
+    this.grassField = new MyGrassField(this, this.grassPatch, this.terrain, 24, 24, 420, 420, 0.02, 0.35, this.deadGrassPatch, 0.12);
     this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
+
+    this.dirtPatches = [];
+    const dirtCount = 32;
+    const half = this.terrain.size / 2;
+    for (let i = 0; i < dirtCount; i++) {
+      const seed = i * 37 + 13;
+      const x = this.random(seed) * (this.terrain.size * 0.9) - half * 0.9;
+      const z = this.random(seed + 7) * (this.terrain.size * 0.9) - half * 0.9;
+      const radius = 2.0 + this.random(seed + 11) * 6.0; 
+      const rotation = this.random(seed + 19) * Math.PI * 2;
+      this.dirtPatches.push(
+        new MyDirtPatch(this, this.terrain, x, z, radius, rotation, 24, 0.05),
+      );
+    }
 
     this.flower = new MyFlower(
       this,
@@ -142,12 +162,11 @@ export class MyScene extends CGFscene {
     this.pathAppearance.setTexture(this.pathTexture);
     this.pathAppearance.setTextureWrap("REPEAT", "REPEAT");
 
-    // Simple appearance for the test sphere (base for rocks)
-    this.sphereAppearance = new CGFappearance(this);
-    this.sphereAppearance.setAmbient(0.6, 0.6, 0.6, 1.0);
-    this.sphereAppearance.setDiffuse(0.6, 0.6, 0.6, 1.0);
-    this.sphereAppearance.setSpecular(0.05, 0.05, 0.05, 1.0);
-    this.sphereAppearance.setShininess(5.0);
+    this.dirtAppearance = new CGFappearance(this);
+    this.dirtAppearance.setAmbient(0.28, 0.20, 0.08, 1);
+    this.dirtAppearance.setDiffuse(0.45, 0.33, 0.12, 1);
+    this.dirtAppearance.setSpecular(0.02, 0.02, 0.02, 1);
+    this.dirtAppearance.setShininess(2);
 
     this.rockAppearance = new CGFappearance(this);
     this.rockAppearance.setAmbient(0.35, 0.35, 0.35, 1);
@@ -156,8 +175,8 @@ export class MyScene extends CGFscene {
     this.rockAppearance.setShininess(8);
 
     this.grassAppearance = new CGFappearance(this);
-    this.grassAppearance.setAmbient(0.1, 0.35, 0.08, 1);
-    this.grassAppearance.setDiffuse(0.2, 0.6, 0.15, 1);
+    this.grassAppearance.setAmbient(0.12, 0.30, 0.07, 1);
+    this.grassAppearance.setDiffuse(0.35, 0.45, 0.18, 1);
     this.grassAppearance.setSpecular(0, 0, 0, 1);
     this.grassAppearance.setShininess(1);
 
@@ -219,7 +238,6 @@ export class MyScene extends CGFscene {
   updateSunLight() {
     const sunDir = this.getSunDirection();
 
-    // Set directional light position to match visual sun direction.
     this.lights[0].setPosition(sunDir.x, sunDir.y, sunDir.z, 0);
 
     const i = Math.max(0, this.sunIntensity);
@@ -233,7 +251,6 @@ export class MyScene extends CGFscene {
 
   getSunMarkerDistance() {
     const edgePadding = 1.0;
-    // Keep marker slightly inside the dome so it is not hidden by sky depth.
     return Math.max(
       edgePadding,
       this.skyScale - this.sunMarkerSize - edgePadding,
@@ -352,6 +369,13 @@ export class MyScene extends CGFscene {
     this.popMatrix();
 
     this.pushMatrix();
+    this.dirtAppearance.apply();
+    for (const patch of this.dirtPatches) {
+      patch.display();
+    }
+    this.popMatrix();
+
+    this.pushMatrix();
     this.pathAppearance.apply();
     this.path.display();
     this.popMatrix();
@@ -376,7 +400,6 @@ export class MyScene extends CGFscene {
       this.popMatrix();
     }
 
-    // Render flowers
     if (this.showFlowers) {
       for (const transform of this.flowerTransforms) {
         this.pushMatrix();

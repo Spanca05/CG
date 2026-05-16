@@ -28,7 +28,6 @@ export class MyTerrain extends CGFobject {
         const halfSize = this.size / 2;
         const step = this.size / this.divisions;
 
-        // Criar vértices
         for (let row = 0; row <= this.divisions; row++) {
             const z = -halfSize + row * step;
 
@@ -38,18 +37,15 @@ export class MyTerrain extends CGFobject {
 
                 this.vertices.push(x, y, z);
 
-                // Inicializar normais a zero; depois calculamos normais suaves
                 this.normals.push(0, 0, 0);
 
-                // Coordenadas de textura com tiling para não ficar muito ampliado
-                const tilingFactor = 8; // Repetir a textura 8x8 vezes
+                const tilingFactor = 8; 
                 const u = (col / this.divisions) * tilingFactor;
                 const v = (row / this.divisions) * tilingFactor;
                 this.texCoords.push(u, v);
             }
         }
 
-        // Criar triângulos
         for (let row = 0; row < this.divisions; row++) {
             for (let col = 0; col < this.divisions; col++) {
                 const topLeft = row * (this.divisions + 1) + col;
@@ -57,13 +53,11 @@ export class MyTerrain extends CGFobject {
                 const bottomLeft = (row + 1) * (this.divisions + 1) + col;
                 const bottomRight = bottomLeft + 1;
 
-                // Dois triângulos por quadrado
                 this.indices.push(topLeft, bottomLeft, topRight);
                 this.indices.push(topRight, bottomLeft, bottomRight);
             }
         }
 
-        // Calcular normais por-vertice (média das normais das faces adjacentes)
         this.normals = new Array(this.vertices.length).fill(0);
 
         for (let i = 0; i < this.indices.length; i += 3) {
@@ -87,7 +81,6 @@ export class MyTerrain extends CGFobject {
             this.normals[ic] += nx; this.normals[ic + 1] += ny; this.normals[ic + 2] += nz;
         }
 
-        // Normalizar normais
         for (let i = 0; i < this.normals.length; i += 3) {
             const nx = this.normals[i], ny = this.normals[i + 1], nz = this.normals[i + 2];
             const len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1.0;

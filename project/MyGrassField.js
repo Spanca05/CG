@@ -11,6 +11,8 @@ export class MyGrassField extends CGFobject {
         depth = 90,
         yOffset = 0.02,
         jitter = 0.35,
+        deadPatch = null,
+        deadChance = 0.0,
     ) {
         super(scene);
 
@@ -22,6 +24,9 @@ export class MyGrassField extends CGFobject {
         this.depth = depth;
         this.yOffset = yOffset;
         this.jitter = jitter;
+        this.deadPatch = deadPatch;
+        this.deadChance = deadChance;
+        this.terrainYOffset = -1;
 
         this.transforms = [];
         this.initTransforms();
@@ -37,12 +42,10 @@ export class MyGrassField extends CGFobject {
             return 0;
         }
 
-        return this.terrain.getHeight(x, z) - 1;
+        return this.terrain.getHeight(x, z) + this.terrainYOffset;
     }
 
     initTransforms() {
-        this.transforms = [];
-
         const rowStep = this.rows > 1 ? this.depth / (this.rows - 1) : 0;
         const colStep = this.cols > 1 ? this.width / (this.cols - 1) : 0;
         const halfWidth = this.width / 2;
@@ -64,12 +67,15 @@ export class MyGrassField extends CGFobject {
                 const scale = 0.9 + this.random(seed + 11) * 0.7;
                 const rotation = this.random(seed + 19) * Math.PI * 2;
 
+                const isDead = this.deadPatch && this.random(seed + 29) < this.deadChance;
+
                 this.transforms.push({
                     x,
                     y,
                     z,
                     scale,
                     rotation,
+                    patchRef: isDead ? this.deadPatch : this.patch,
                 });
 
                 seed += 23;
@@ -84,7 +90,8 @@ export class MyGrassField extends CGFobject {
             this.scene.rotate(transform.rotation, 0, 1, 0);
             this.scene.scale(transform.scale, transform.scale, transform.scale);
 
-            this.patch.display();
+            const patchToDraw = transform.patchRef || this.patch;
+            patchToDraw.display();
 
             this.scene.popMatrix();
         }

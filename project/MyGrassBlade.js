@@ -1,7 +1,7 @@
 import { CGFobject } from "../lib/CGF.js";
 
 export class MyGrassBlade extends CGFobject {
-    constructor(scene, width = 0.08, height = 1.0, bend = 0.05) {
+    constructor(scene, width = 0.12, height = 1.0, bend = 0.18) {
         super(scene);
         this.width = width;
         this.height = height;
