@@ -13,6 +13,8 @@ import { MyRock } from "./MyRock.js";
 import { MyFlower } from "./MyFlower.js";
 import { MyGrassBlade } from "./MyGrassBlade.js";
 import { MyGrassPatch } from "./MyGrassPatch.js";
+import { MyGrassField } from "./MyGrassField.js";
+import { MyPath } from "./MyPath.js";
 
 export class MyScene extends CGFscene {
   constructor() {
@@ -71,7 +73,9 @@ export class MyScene extends CGFscene {
     this.rocks.push(new MyRock(this, 13, 9, 4));
     this.rocks.push(new MyRock(this, 15, 10, 5));
     this.grassBlade = new MyGrassBlade(this, 0.08, 1.4, 0.12);
-    this.grassPatch = new MyGrassPatch(this, this.grassBlade, 18, 0.55, 0.16);
+    this.grassPatch = new MyGrassPatch(this, this.grassBlade, 28, 1.35, 0.24);
+    this.grassField = new MyGrassField(this, this.grassPatch, this.terrain, 7, 7, 84, 84);
+    this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
 
     this.flower = new MyFlower(
       this,
@@ -128,6 +132,15 @@ export class MyScene extends CGFscene {
     this.terrainAppearance.setShininess(10);
     this.terrainAppearance.setTexture(this.terrainTexture);
     this.terrainAppearance.setTextureWrap("REPEAT", "REPEAT");
+
+    this.pathAppearance = new CGFappearance(this);
+    this.pathAppearance.setAmbient(0.32, 0.24, 0.14, 1);
+    this.pathAppearance.setDiffuse(0.48, 0.36, 0.2, 1);
+    this.pathAppearance.setSpecular(0.02, 0.02, 0.02, 1);
+    this.pathAppearance.setShininess(3);
+    this.pathTexture = new CGFtexture(this, "./textures/ground.jpg");
+    this.pathAppearance.setTexture(this.pathTexture);
+    this.pathAppearance.setTextureWrap("REPEAT", "REPEAT");
 
     // Simple appearance for the test sphere (base for rocks)
     this.sphereAppearance = new CGFappearance(this);
@@ -338,6 +351,11 @@ export class MyScene extends CGFscene {
 
     this.popMatrix();
 
+    this.pushMatrix();
+    this.pathAppearance.apply();
+    this.path.display();
+    this.popMatrix();
+
     this.rocks.forEach((rock, i) => {
       this.pushMatrix();
       const x = 5 + (i % 3) * 8;
@@ -354,7 +372,7 @@ export class MyScene extends CGFscene {
       this.translate(0, -0.45, 0);
       this.scale(this.grassScale, this.grassScale, this.grassScale);
       this.grassAppearance.apply();
-      this.grassPatch.display();
+      this.grassField.display();
       this.popMatrix();
     }
 
