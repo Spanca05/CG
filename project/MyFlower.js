@@ -7,20 +7,41 @@ import { MyFlowerLeaf } from "./MyFlowerLeaf.js";
 export class MyFlower extends CGFobject {
   constructor(
     scene,
-    stemHeight = 0.6,
-    petals = 6,
+    stemHeight = 5,
+    petals = 5,
     leaves = 2,
     colorVariation = 0.0,
   ) {
     super(scene);
 
-    this.stemHeight = stemHeight;
+    this.stemHeight = Math.min(stemHeight, 5);
     this.petals = petals;
-    this.leaves = leaves;
+    this.leaves = Math.min(leaves, Math.floor(this.stemHeight/0.5));
     this.colorVariation = colorVariation;
-
     this.stem = new MyFlowerStem(scene, this.stemHeight, 0.015);
-    this.petal = new MyFlowerPetal(scene, 0.4, 0.18);
+
+    let phwconst = 0.55;
+    switch (this.petals) {
+      case 3:
+        phwconst = 1.05;
+        break;
+      case 4:
+        phwconst = 0.85;
+        break;
+      case 5:
+        phwconst = 0.55;
+        break;
+      case 6:
+        phwconst = 0.45;
+        break;
+      case 7:
+        phwconst = 0.35;
+        break;
+
+      default: break;
+    }
+
+    this.petal = new MyFlowerPetal(scene, 0.4, 0.18, phwconst);
     this.center = new MyFlowerCenter(scene, 0.12);
     this.leaf = new MyFlowerLeaf(scene, 0.24, 0.1);
 
@@ -31,10 +52,9 @@ export class MyFlower extends CGFobject {
     this.stemAppearance.setShininess(2);
 
     this.petalAppearance = new CGFappearance(scene);
-    const pv = Math.max(0, Math.min(1, this.colorVariation));
-    const petalR = 0.9 - pv * 0.2;
-    const petalG = 0.3 - pv * 0.1;
-    const petalB = 0.45 + pv * 0.2;
+    const petalR = 0.9 - colorVariation * 0.2;
+    const petalG = 0.3 - colorVariation * 0.1;
+    const petalB = 0.45 + colorVariation * 0.2;
     this.petalAppearance.setAmbient(
       petalR * 0.9,
       petalG * 0.9,
@@ -46,8 +66,11 @@ export class MyFlower extends CGFobject {
     this.petalAppearance.setShininess(10);
 
     this.centerAppearance = new CGFappearance(scene);
-    this.centerAppearance.setAmbient(0.75, 0.62, 0.08, 1);
-    this.centerAppearance.setDiffuse(0.98, 0.86, 0.12, 1);
+    const centerR = 0.92 - colorVariation * 0.025;
+    const centerG = 0.74 - colorVariation * 0.018;
+    const centerB = 0.10 + colorVariation * 0.016;
+    this.centerAppearance.setAmbient(centerR * 0.8, centerG * 0.8, centerB * 0.8, 1);
+    this.centerAppearance.setDiffuse(centerR, centerG, centerB, 1);
     this.centerAppearance.setSpecular(0.2, 0.18, 0.08, 1);
     this.centerAppearance.setShininess(10);
 

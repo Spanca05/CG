@@ -1,10 +1,11 @@
 import { CGFobject } from "../lib/CGF.js";
 
 export class MyFlowerPetal extends CGFobject {
-  constructor(scene, length = 0.28, width = 0.16) {
+  constructor(scene, length = 0.28, width = 0.16, phwconst = 0.55) {
     super(scene);
     this.length = length;
     this.width = width;
+    this.phwconst = phwconst;
     this.initBuffers();
   }
 
@@ -23,7 +24,7 @@ export class MyFlowerPetal extends CGFobject {
     for (let i = 0; i <= segments; i++) {
       const t = i / segments;
       const x = l * t;
-      const halfWidth = w * 0.55 * Math.sin(Math.PI * t);
+      const halfWidth = w * this.phwconst * Math.sin(Math.PI * t);
       const y = centerY + bulgeY * 0.5 * Math.sin(Math.PI * t);
 
       this.vertices.push(x, y, halfWidth);

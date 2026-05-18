@@ -46,7 +46,7 @@ export class MyScene extends CGFscene {
     this.flowersStemHeight = 5;
     this.flowersNumberPetals = 5;
     this.flowersNumberLeaves = 2;
-    this.flowersColorVariation = 0;
+    this.flowersColorVariation = 1;
   }
 
   init(application) {
@@ -97,15 +97,8 @@ export class MyScene extends CGFscene {
       );
     }
 
-    this.flower = new MyFlower(
-      this,
-      this.flowersStemHeight / 10.0,
-      this.flowersNumberPetals,
-      this.flowersNumberLeaves,
-      this.flowersColorVariation,
-    );
-    this.flowerTransforms = [];
-    this.initFlowerTransforms();
+    this.flowersNum = 5;
+    this.initFlowers();
 
     this.skyAppearance = new CGFappearance(this);
     this.skyAppearance.setAmbient(0.7, 0.8, 1.0, 1.0);
@@ -144,7 +137,7 @@ export class MyScene extends CGFscene {
     this.setUpdatePeriod(50);
 
     this.terrainAppearance = new CGFappearance(this);
-    this.terrainTexture = new CGFtexture(this, "./textures/ground.jpg");
+    this.terrainTexture = new CGFtexture(this, "./textures/grass.webp");
 
     this.terrainAppearance.setAmbient(0.9, 0.9, 0.9, 1);
     this.terrainAppearance.setDiffuse(1.0, 1.0, 1.0, 1);
@@ -187,28 +180,39 @@ export class MyScene extends CGFscene {
     this.flowerAppearance.setShininess(8);
   }
 
-  initFlowerTransforms() {
-    const flowerCount = 12;
-    for (let i = 0; i < flowerCount; i++) {
-      const seed = i + 42;
-      const x = this.random(seed) * 60 - 30;
-      const z = this.random(seed + 1) * 60 - 30;
-      const scale = 0.5 + this.random(seed + 2) * 0.6;
-      const rotation = this.random(seed + 3) * Math.PI * 2;
-      const stemH =
-        this.flowersStemHeight / 10.0 + (this.random(seed + 4) - 0.5) * 0.1;
-      const petals = Math.max(3, Math.round(3 + this.random(seed + 5) * 4));
-      const leaves = Math.round(this.random(seed + 6) * 3);
+  initFlowers() {
+    this.flowerTypes = [];
 
-      this.flowerTransforms.push({
-        x,
-        z,
-        scale,
-        rotation,
-        stemHeight: stemH,
+    const flowerCountPerType = 12;
+
+    for (let typeIndex = 0; typeIndex < this.flowersNum; typeIndex++) {
+      const typeSeed = 42 + typeIndex * 100;
+      const stemH =
+        this.flowersStemHeight / 10.0 + (this.random(typeSeed + 4) - 0.5) * 0.1;
+      const petals = Math.max(3, Math.round(3 + this.random(typeSeed + 5) * 4));
+      const leaves = Math.round(this.random(typeSeed + 6) * 3);
+      const colorVariation = this.random(typeSeed) * 3.2;
+
+      const flower = new MyFlower(
+        this,
+        stemH,
         petals,
         leaves,
-      });
+        colorVariation,
+      );
+
+      const transforms = [];
+      for (let i = 0; i < flowerCountPerType; i++) {
+        const seed = typeSeed + i;
+        transforms.push({
+          x: this.random(seed) * 60 - 30,
+          z: this.random(seed + 1) * 60 - 30,
+          scale: 0.5 + this.random(seed + 2) * 0.6,
+          rotation: this.random(seed + 3) * Math.PI * 2,
+        });
+      }
+
+      this.flowerTypes.push({ flower, transforms });
     }
   }
 
@@ -401,24 +405,23 @@ export class MyScene extends CGFscene {
     }
 
     if (this.showFlowers) {
-      for (const transform of this.flowerTransforms) {
-        this.pushMatrix();
-        const rawGroundY = this.terrain
-          ? this.terrain.getHeight(transform.x, transform.z)
-          : 0;
-        const terrainDisplayOffset = -1;
-        const groundY = rawGroundY + terrainDisplayOffset;
-        this.translate(transform.x, groundY + 0.002, transform.z);
-        this.rotate(transform.rotation, 0, 1, 0);
-        this.scale(transform.scale, transform.scale, transform.scale);
-        this.flowerAppearance.apply();
-        const stemH = this.flowersStemHeight / 10.0;
-        const petals = this.flowersNumberPetals;
-        const leaves = this.flowersNumberLeaves;
-        const colorVar = this.flowersColorVariation;
-        const tempFlower = new MyFlower(this, stemH, petals, leaves, colorVar);
-        tempFlower.display();
-        this.popMatrix();
+      for (const flowerType of this.flowerTypes) {
+        for (const transform of flowerType.transforms) {
+          this.pushMatrix();
+
+          const rawGroundY = this.terrain
+            ? this.terrain.getHeight(transform.x, transform.z)
+            : 0;
+          const groundY = rawGroundY - 1;
+
+          this.translate(transform.x, groundY + 0.002, transform.z);
+          this.rotate(transform.rotation, 0, 1, 0);
+          this.scale(transform.scale, transform.scale, transform.scale);
+          this.flowerAppearance.apply();
+          flowerType.flower.display();
+
+          this.popMatrix();
+        }
       }
     }
 
