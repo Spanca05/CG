@@ -22,10 +22,10 @@ export class MyGrassBlade extends CGFobject {
             const t = i / this.segments;
             const y = t * this.height;
 
-            const currentWidth = this.width * (1 - t);
+            const currentWidth = this.width * Math.pow(1 - t, 1.6);
             const halfWidth = currentWidth / 2;
 
-            const curveX = this.bend * t * t;
+            const curveX = this.bend * Math.sin(t * Math.PI * 0.5);
 
             this.vertices.push(
                 curveX - halfWidth, y, 0,

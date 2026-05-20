@@ -29,7 +29,9 @@ export class MyGrassPatch extends CGFobject {
 
         for (let i = 0; i < this.bladeCount; i++) {
             const angle = this.random(i + 1) * Math.PI * 2;
-            const distance = this.random(i + 17) * this.radius;
+
+            const edgeNoise = 0.7 + 0.3 * Math.sin(angle * 4.0 + this.random(i + 200) * Math.PI * 2);   
+            const distance = Math.sqrt(this.random(i + 17)) * this.radius * edgeNoise;
 
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
@@ -39,8 +41,8 @@ export class MyGrassPatch extends CGFobject {
             const bend = (this.random(i + 59) - 0.5) * this.spread;
             const yRotation = this.random(i + 71) * Math.PI * 2;
 
-            const jitterX = (this.random(i + 83) - 0.5) * this.radius * 0.2;
-            const jitterZ = (this.random(i + 97) - 0.5) * this.radius * 0.2;
+            const jitterX = (this.random(i + 83) - 0.5) * this.radius * 0.08;
+            const jitterZ = (this.random(i + 97) - 0.5) * this.radius * 0.08;
 
             this.transforms.push({
                 x: x + jitterX,

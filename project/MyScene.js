@@ -79,20 +79,22 @@ export class MyScene extends CGFscene {
         this.rocks.push(new MyRock(this, 13, 9, 4));
         this.rocks.push(new MyRock(this, 15, 10, 5));
 
-        this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18);
-        this.grassPatch = new MyGrassPatch(this, this.grassBlade, 48, 0.9, 0.34);
-        this.deadGrassPatch = new MyGrassPatch(this, this.grassBlade, 30, 0.7, 0.25);
+        this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18, 8);
+        this.grassPatch = new MyGrassPatch(this, this.grassBlade, 180, 2.2, 0.34);
+        this.deadGrassPatch = new MyGrassPatch(this, this.grassBlade, 100, 1.8, 0.28);
 
         this.grassField = new MyGrassField(
             this,
             this.grassPatch,
             this.terrain,
-            24,
-            24,
+            14,
+            14,
             420,
             420,
             0.02,
             0.35,
+            this.path,
+            2.0
         );
 
         this.deadGrassField = new MyGrassField(
@@ -105,6 +107,8 @@ export class MyScene extends CGFscene {
             380,
             0.025,
             0.45,
+            this.path,
+            2.0
         );
 
         this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);

@@ -11,6 +11,8 @@ export class MyGrassField extends CGFobject {
     depth = 90,
     yOffset = 0.02,
     jitter = 0.35,
+    path = null,
+    pathMargin = 2.0,
   ) {
     super(scene);
 
@@ -22,6 +24,8 @@ export class MyGrassField extends CGFobject {
     this.depth = depth;
     this.yOffset = yOffset;
     this.jitter = jitter;
+    this.path = path;
+    this.pathMargin = pathMargin;
     this.terrainYOffset = -1;
 
     this.transforms = [];
@@ -62,6 +66,10 @@ export class MyGrassField extends CGFobject {
         const y = this.getTerrainHeight(x, z) + this.yOffset;
         const scale = 0.9 + this.random(seed + 11) * 0.7;
         const rotation = this.random(seed + 19) * Math.PI * 2;
+
+        if (this.path && this.path.isNearPath(x, z, this.pathMargin)) {
+            continue;
+        }
 
         this.transforms.push({
           x,
