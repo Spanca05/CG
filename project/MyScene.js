@@ -171,11 +171,14 @@ export class MyScene extends CGFscene {
     this.pathAppearance.setTexture(this.pathTexture);
     this.pathAppearance.setTextureWrap("REPEAT", "REPEAT");
 
+    this.dirtTexture = new CGFtexture(this, "./textures/dirtTexture.jpg");
     this.dirtAppearance = new CGFappearance(this);
     this.dirtAppearance.setAmbient(0.28, 0.2, 0.08, 1);
     this.dirtAppearance.setDiffuse(0.45, 0.33, 0.12, 1);
     this.dirtAppearance.setSpecular(0.02, 0.02, 0.02, 1);
     this.dirtAppearance.setShininess(2);
+    this.dirtAppearance.setTexture(this.dirtTexture);
+    this.dirtAppearance.setTextureWrap("REPEAT", "REPEAT");
 
     this.rockAppearance = new CGFappearance(this);
     this.rockAppearance.setAmbient(0.35, 0.35, 0.35, 1);
