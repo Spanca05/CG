@@ -47,6 +47,9 @@ export class MyScene extends CGFscene {
     this.flowersNumberPetals = 5;
     this.flowersNumberLeaves = 2;
     this.flowersColorVariation = 1;
+    this.flowersMinDist = 0.5;
+
+    this.randomSeed = Date.now();
   }
 
   init(application) {
@@ -67,20 +70,41 @@ export class MyScene extends CGFscene {
     this.sunMarker = new MySun(this, 24, 24);
     this.sunAuraMarker = new MySun(this, 24, 24);
     this.terrain = new MyTerrain(this, 420, 120, 1.2);
+
     this.rocks = [];
     this.rocks.push(new MyRock(this, 16, 10, 1));
     this.rocks.push(new MyRock(this, 12, 8, 2));
     this.rocks.push(new MyRock(this, 14, 9, 3));
     this.rocks.push(new MyRock(this, 13, 9, 4));
     this.rocks.push(new MyRock(this, 15, 10, 5));
+
     this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18);
     this.grassPatch = new MyGrassPatch(this, this.grassBlade, 48, 0.9, 0.34);
     const deadVariants = [
       { ambient: [0.45, 0.36, 0.16], diffuse: [0.65, 0.55, 0.25] },
       { ambient: [0.35, 0.28, 0.12], diffuse: [0.55, 0.45, 0.18] },
     ];
-    this.deadGrassPatch = new MyGrassPatch(this, this.grassBlade, 24, 0.6, 0.28, deadVariants);
-    this.grassField = new MyGrassField(this, this.grassPatch, this.terrain, 24, 24, 420, 420, 0.02, 0.35, this.deadGrassPatch, 0.12);
+    this.deadGrassPatch = new MyGrassPatch(
+      this,
+      this.grassBlade,
+      24,
+      0.6,
+      0.28,
+      deadVariants,
+    );
+    this.grassField = new MyGrassField(
+      this,
+      this.grassPatch,
+      this.terrain,
+      24,
+      24,
+      420,
+      420,
+      0.02,
+      0.35,
+      this.deadGrassPatch,
+      0.12,
+    );
     this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
 
     this.dirtPatches = [];
@@ -90,14 +114,14 @@ export class MyScene extends CGFscene {
       const seed = i * 37 + 13;
       const x = this.random(seed) * (this.terrain.size * 0.9) - half * 0.9;
       const z = this.random(seed + 7) * (this.terrain.size * 0.9) - half * 0.9;
-      const radius = 2.0 + this.random(seed + 11) * 6.0; 
+      const radius = 2.0 + this.random(seed + 11) * 6.0;
       const rotation = this.random(seed + 19) * Math.PI * 2;
       this.dirtPatches.push(
         new MyDirtPatch(this, this.terrain, x, z, radius, rotation, 24, 0.05),
       );
     }
 
-    this.flowersNum = 5;
+    this.flowersNum = 10;
     this.initFlowers();
 
     this.skyAppearance = new CGFappearance(this);
@@ -156,7 +180,7 @@ export class MyScene extends CGFscene {
     this.pathAppearance.setTextureWrap("REPEAT", "REPEAT");
 
     this.dirtAppearance = new CGFappearance(this);
-    this.dirtAppearance.setAmbient(0.28, 0.20, 0.08, 1);
+    this.dirtAppearance.setAmbient(0.28, 0.2, 0.08, 1);
     this.dirtAppearance.setDiffuse(0.45, 0.33, 0.12, 1);
     this.dirtAppearance.setSpecular(0.02, 0.02, 0.02, 1);
     this.dirtAppearance.setShininess(2);
@@ -168,7 +192,7 @@ export class MyScene extends CGFscene {
     this.rockAppearance.setShininess(8);
 
     this.grassAppearance = new CGFappearance(this);
-    this.grassAppearance.setAmbient(0.12, 0.30, 0.07, 1);
+    this.grassAppearance.setAmbient(0.12, 0.3, 0.07, 1);
     this.grassAppearance.setDiffuse(0.35, 0.45, 0.18, 1);
     this.grassAppearance.setSpecular(0, 0, 0, 1);
     this.grassAppearance.setShininess(1);
@@ -183,37 +207,100 @@ export class MyScene extends CGFscene {
   initFlowers() {
     this.flowerTypes = [];
 
-    const flowerCountPerType = 12;
+    const flowerCountPerType = 64;
+    const terrainHalf = this.terrain ? this.terrain.size / 2 : 30;
+    const spreadHalf = terrainHalf * 0.95;
+    const minDist = this.flowersMinDist;
+    const maxAttempts = 10;
+    const placed = [];
 
     for (let typeIndex = 0; typeIndex < this.flowersNum; typeIndex++) {
-      const typeSeed = 42 + typeIndex * 100;
-      const stemH =
-        this.flowersStemHeight / 10.0 + (this.random(typeSeed + 4) - 0.5) * 0.1;
+      const typeSeed = this.randomSeed / (typeIndex * 100 + 1);
+      const stemH = this.flowersStemHeight / 10.0 + this.random(typeSeed + 4);
       const petals = Math.max(3, Math.round(3 + this.random(typeSeed + 5) * 4));
-      const leaves = Math.round(this.random(typeSeed + 6) * 3);
+      const leaves = Math.round(this.random(typeSeed + 6) * 100);
       const colorVariation = this.random(typeSeed) * 3.2;
 
-      const flower = new MyFlower(
-        this,
-        stemH,
-        petals,
-        leaves,
-        colorVariation,
-      );
+      const flower = new MyFlower(this, stemH, petals, leaves, colorVariation);
 
       const transforms = [];
       for (let i = 0; i < flowerCountPerType; i++) {
-        const seed = typeSeed + i;
-        transforms.push({
-          x: this.random(seed) * 60 - 30,
-          z: this.random(seed + 1) * 60 - 30,
-          scale: 0.5 + this.random(seed + 2) * 0.6,
-          rotation: this.random(seed + 3) * Math.PI * 2,
-        });
+        let candidate = null;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+          const seed = typeSeed + i * 1000 + attempt * 17;
+          const x = (this.random(seed) * 2 - 1) * spreadHalf;
+          const z = (this.random(seed + 1) * 2 - 1) * spreadHalf;
+
+          if (this.isValidFlowerPosition(x, z, minDist, placed)) {
+            candidate = {
+              x,
+              z,
+              scale: 0.5 + this.random(seed + 2) * 0.6,
+              rotation: this.random(seed + 3) * Math.PI * 2,
+            };
+            placed.push({ x, z });
+            transforms.push(candidate);
+            break;
+          }
+        }
       }
 
       this.flowerTypes.push({ flower, transforms });
     }
+  }
+
+  distanceSquared(x1, z1, x2, z2) {
+    const dx = x1 - x2;
+    const dz = z1 - z2;
+    return dx * dx + dz * dz;
+  }
+
+  isPointOnPath(x, z, clearance = 1.5) {
+    if (!this.path || typeof this.path.getCenterX !== "function") return false;
+
+    const halfWidth = this.path.width / 2 + clearance;
+    const centerX = this.path.getCenterX(z);
+    return Math.abs(x - centerX) <= halfWidth;
+  }
+
+  isPointInsideDirtPatch(x, z, clearance = 0.8) {
+    for (const patch of this.dirtPatches) {
+      const limit = patch.radius + clearance;
+      if (this.distanceSquared(x, z, patch.centerX, patch.centerZ) <= limit * limit)
+        return true;
+    }
+
+    return false;
+  }
+
+  isPointNearRock(x, z, clearance = 3.5) {
+    for (let i = 0; i < this.rocks.length; i++) {
+      const rx = 5 + (i % 3) * 8;
+      const rz = 0 + Math.floor(i / 3) * 10;
+      if (this.distanceSquared(x, z, rx, rz) <= clearance * clearance)
+        return true;
+    }
+
+    return false;
+  }
+
+  isValidFlowerPosition(x, z, minDist, placed) {
+    const minDistSq = minDist * minDist;
+
+    for (const point of placed) {
+      if (this.distanceSquared(x, z, point.x, point.z) < minDistSq)
+        return false;
+    }
+
+    if (this.isPointOnPath(x, z)) 
+      return false;
+    if (this.isPointInsideDirtPatch(x, z)) 
+      return false;
+    if (this.isPointNearRock(x, z)) 
+      return false;
+
+    return true;
   }
 
   random(seed) {
@@ -409,9 +496,7 @@ export class MyScene extends CGFscene {
         for (const transform of flowerType.transforms) {
           this.pushMatrix();
 
-          const rawGroundY = this.terrain
-            ? this.terrain.getHeight(transform.x, transform.z)
-            : 0;
+          const rawGroundY = this.terrain ? this.terrain.getHeight(transform.x, transform.z) : 0;
           const groundY = rawGroundY - 1;
 
           this.translate(transform.x, groundY + 0.002, transform.z);

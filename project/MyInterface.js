@@ -42,10 +42,6 @@ export class MyInterface extends CGFinterface {
 
     const flowersFolder = this.gui.addFolder("Flowers");
     flowersFolder.add(this.scene, "showFlowers").name("Visible");
-    flowersFolder.add(this.scene, "flowersStemHeight", 1, 100, 1).name("Stem Height");
-    flowersFolder.add(this.scene, "flowersNumberPetals", 3, 10, 1).name("Petals");
-    flowersFolder.add(this.scene, "flowersNumberLeaves", 0, 10, 1).name("Leaves");
-    flowersFolder.add(this.scene, "flowersColorVariation", 0, 1, 0.1).name("Color Variation");
     flowersFolder.open();
 
     return true;
