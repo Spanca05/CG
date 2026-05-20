@@ -1,4 +1,4 @@
-import { CGFobject } from "../lib/CGF.js";
+import { CGFobject } from "../../../lib/CGF.js";
 
 export class MyFlowerPetal extends CGFobject {
   constructor(scene, length = 0.28, width = 0.16, phwconst = 0.55) {

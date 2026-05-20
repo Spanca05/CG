@@ -1,4 +1,4 @@
-import { CGFobject, CGFappearance } from "../lib/CGF.js";
+import { CGFobject, CGFappearance } from "../../../lib/CGF.js";
 import { MyFlowerStem } from "./MyFlowerStem.js";
 import { MyFlowerPetal } from "./MyFlowerPetal.js";
 import { MyFlowerCenter } from "./MyFlowerCenter.js";
@@ -16,7 +16,7 @@ export class MyFlower extends CGFobject {
 
     this.stemHeight = Math.min(stemHeight, 5);
     this.petals = petals;
-    this.leaves = Math.min(leaves, Math.floor(this.stemHeight/0.5));
+    this.leaves = Math.min(leaves, Math.floor(this.stemHeight / 0.5));
     this.colorVariation = colorVariation;
     this.stem = new MyFlowerStem(scene, this.stemHeight, 0.015);
 
@@ -38,7 +38,8 @@ export class MyFlower extends CGFobject {
         phwconst = 0.35;
         break;
 
-      default: break;
+      default:
+        break;
     }
 
     this.petal = new MyFlowerPetal(scene, 0.4, 0.18, phwconst);
@@ -68,8 +69,13 @@ export class MyFlower extends CGFobject {
     this.centerAppearance = new CGFappearance(scene);
     const centerR = 0.92 - colorVariation * 0.025;
     const centerG = 0.74 - colorVariation * 0.018;
-    const centerB = 0.10 + colorVariation * 0.016;
-    this.centerAppearance.setAmbient(centerR * 0.8, centerG * 0.8, centerB * 0.8, 1);
+    const centerB = 0.1 + colorVariation * 0.016;
+    this.centerAppearance.setAmbient(
+      centerR * 0.8,
+      centerG * 0.8,
+      centerB * 0.8,
+      1,
+    );
     this.centerAppearance.setDiffuse(centerR, centerG, centerB, 1);
     this.centerAppearance.setSpecular(0.2, 0.18, 0.08, 1);
     this.centerAppearance.setShininess(10);

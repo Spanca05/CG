@@ -9,13 +9,13 @@ import { MySky } from "./MySky.js";
 import { MyClouds } from "./MyClouds.js";
 import { MySun } from "./MySun.js";
 import { MyTerrain } from "./MyTerrain.js";
-import { MyRock } from "./MyRock.js";
-import { MyFlower } from "./MyFlower.js";
-import { MyGrassBlade } from "./MyGrassBlade.js";
-import { MyGrassPatch } from "./MyGrassPatch.js";
-import { MyGrassField } from "./MyGrassField.js";
+import { MyRock } from "./elements/MyRock.js";
+import { MyFlower } from "./elements/flower/MyFlower.js";
+import { MyGrassBlade } from "./elements/grass/MyGrassBlade.js";
+import { MyGrassPatch } from "./elements/grass/MyGrassPatch.js";
+import { MyGrassField } from "./elements/grass/MyGrassField.js";
 import { MyPath } from "./MyPath.js";
-import { MyDirtPatch } from "./MyDirtPatch.js";
+import { MyDirtPatch } from "./elements/MyDirtPatch.js";
 
 export class MyScene extends CGFscene {
   constructor() {
@@ -342,10 +342,10 @@ export class MyScene extends CGFscene {
 
   initCameras() {
     this.camera = new CGFcamera(
-      0.4,
+      1,
       0.1,
       500,
-      vec3.fromValues(15, 15, 15),
+      vec3.fromValues(30, 30, 30),
       vec3.fromValues(0, 0, 0),
     );
   }
