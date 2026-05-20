@@ -68,7 +68,6 @@ export class MyScene extends CGFscene {
     this.sky = new MySky(this, 40, 20);
     this.clouds = new MyClouds(this, 40, 20);
     this.sunMarker = new MySun(this, 24, 24);
-    this.sunAuraMarker = new MySun(this, 24, 24);
     this.terrain = new MyTerrain(this, 420, 120, 1.2);
 
     this.rocks = [];
@@ -136,17 +135,10 @@ export class MyScene extends CGFscene {
 
     this.sunAppearance = new CGFappearance(this);
     this.sunAppearance.setAmbient(1.0, 0.78, 0.25, 1.0);
-    this.sunAppearance.setDiffuse(1.0, 0.78, 0.25, 1.0);
+    this.sunAppearance.setDiffuse(1.0, 1, 1, 1.0);
     this.sunAppearance.setSpecular(0.0, 0.0, 0.0, 1.0);
     this.sunAppearance.setEmission(1.0, 0.65, 0.18, 1.0);
     this.sunAppearance.setShininess(1.0);
-
-    this.sunAuraAppearance = new CGFappearance(this);
-    this.sunAuraAppearance.setAmbient(1.0, 0.85, 0.35, 0.18);
-    this.sunAuraAppearance.setDiffuse(1.0, 0.85, 0.35, 0.18);
-    this.sunAuraAppearance.setSpecular(0, 0, 0, 1);
-    this.sunAuraAppearance.setEmission(1.0, 0.75, 0.25, 0.18);
-    this.sunAuraAppearance.setShininess(1.0);
 
     this.cloudTexture = new CGFtexture(this, "./textures/cloudTexture.png");
 
@@ -267,7 +259,10 @@ export class MyScene extends CGFscene {
   isPointInsideDirtPatch(x, z, clearance = 0.8) {
     for (const patch of this.dirtPatches) {
       const limit = patch.radius + clearance;
-      if (this.distanceSquared(x, z, patch.centerX, patch.centerZ) <= limit * limit)
+      if (
+        this.distanceSquared(x, z, patch.centerX, patch.centerZ) <=
+        limit * limit
+      )
         return true;
     }
 
@@ -293,12 +288,9 @@ export class MyScene extends CGFscene {
         return false;
     }
 
-    if (this.isPointOnPath(x, z)) 
-      return false;
-    if (this.isPointInsideDirtPatch(x, z)) 
-      return false;
-    if (this.isPointNearRock(x, z)) 
-      return false;
+    if (this.isPointOnPath(x, z)) return false;
+    if (this.isPointInsideDirtPatch(x, z)) return false;
+    if (this.isPointNearRock(x, z)) return false;
 
     return true;
   }
@@ -420,30 +412,6 @@ export class MyScene extends CGFscene {
         sunDir.y * sunDistance,
         sunDir.z * sunDistance,
       );
-      this.scale(
-        this.sunMarkerSize * 1.3,
-        this.sunMarkerSize * 1.3,
-        this.sunMarkerSize * 1.3,
-      );
-
-      this.gl.enable(this.gl.BLEND);
-      this.gl.blendColor(1.0, 0.85, 0.3, 0.18);
-      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
-      this.gl.depthMask(false);
-
-      this.sunAuraAppearance.apply();
-      this.sunAuraMarker.display();
-
-      this.gl.depthMask(true);
-      this.gl.disable(this.gl.BLEND);
-      this.popMatrix();
-
-      this.pushMatrix();
-      this.translate(
-        sunDir.x * sunDistance,
-        sunDir.y * sunDistance,
-        sunDir.z * sunDistance,
-      );
       this.scale(this.sunMarkerSize, this.sunMarkerSize, this.sunMarkerSize);
 
       this.sunAppearance.apply();
@@ -496,7 +464,9 @@ export class MyScene extends CGFscene {
         for (const transform of flowerType.transforms) {
           this.pushMatrix();
 
-          const rawGroundY = this.terrain ? this.terrain.getHeight(transform.x, transform.z) : 0;
+          const rawGroundY = this.terrain
+            ? this.terrain.getHeight(transform.x, transform.z)
+            : 0;
           const groundY = rawGroundY - 1;
 
           this.translate(transform.x, groundY + 0.002, transform.z);
