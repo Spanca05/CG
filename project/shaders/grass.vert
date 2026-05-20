@@ -10,18 +10,20 @@ uniform float time;
 uniform float windStrength;
 uniform float windSpeed;
 
-varying vec3 vNormal;
+varying vec2 vTexCoord;
+varying float vHeight;
 
 void main() {
     vec3 position = aVertexPosition;
 
     float heightFactor = clamp(position.y, 0.0, 1.0);
 
-    float wind = sin(time * windSpeed + position.x * 4.0 + position.z * 2.0);
+    float wind = sin(time * windSpeed) * windStrength;
 
-    position.x += wind * windStrength * heightFactor;
+    position.x += wind * heightFactor * heightFactor;
 
-    vNormal = vec3(uNMatrix * vec4(aVertexNormal, 0.0));
+    vTexCoord = aTextureCoord;
+    vHeight = heightFactor;
 
     gl_Position = uPMatrix * uMVMatrix * vec4(position, 1.0);
 }

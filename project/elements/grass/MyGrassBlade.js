@@ -1,60 +1,59 @@
 import { CGFobject } from "../../../lib/CGF.js";
 
 export class MyGrassBlade extends CGFobject {
-  constructor(scene, width = 0.12, height = 1.0, bend = 0.18) {
-    super(scene);
-    this.width = width;
-    this.height = height;
-    this.bend = bend;
-    this.initBuffers();
-  }
+    constructor(scene, width = 0.12, height = 1.0, bend = 0.18, segments = 5) {
+        super(scene);
 
-  initBuffers() {
-    const w = this.width / 2;
-    const h = this.height;
-    const b = this.bend;
+        this.width = width;
+        this.height = height;
+        this.bend = bend;
+        this.segments = segments;
 
-    this.vertices = [
-      // frente
-      -w,
-      0,
-      0,
-      w,
-      0,
-      0,
-      b,
-      h,
-      0,
+        this.initBuffers();
+    }
 
-      // trás
-      w,
-      0,
-      0,
-      -w,
-      0,
-      0,
-      b,
-      h,
-      0,
-    ];
+    initBuffers() {
+        this.vertices = [];
+        this.indices = [];
+        this.normals = [];
+        this.texCoords = [];
 
-    this.indices = [0, 1, 2, 3, 4, 5];
+        for (let i = 0; i <= this.segments; i++) {
+            const t = i / this.segments;
+            const y = t * this.height;
 
-    this.normals = [
-      // frente
-      0, 0, 1, 0, 0, 1, 0, 0, 1,
+            const currentWidth = this.width * (1 - t);
+            const halfWidth = currentWidth / 2;
 
-      // trás
-      0, 0, -1, 0, 0, -1, 0, 0, -1,
-    ];
+            const curveX = this.bend * t * t;
 
-    this.texCoords = [
-      0, 1, 1, 1, 0.5, 0,
+            this.vertices.push(
+                curveX - halfWidth, y, 0,
+                curveX + halfWidth, y, 0
+            );
 
-      1, 1, 0, 1, 0.5, 0,
-    ];
+            this.normals.push(
+                0, 0, 1,
+                0, 0, 1
+            );
 
-    this.primitiveType = this.scene.gl.TRIANGLES;
-    this.initGLBuffers();
-  }
+            this.texCoords.push(
+                0, 1 - t,
+                1, 1 - t
+            );
+        }
+
+        for (let i = 0; i < this.segments; i++) {
+            const left0 = i * 2;
+            const right0 = left0 + 1;
+            const left1 = left0 + 2;
+            const right1 = left0 + 3;
+
+            this.indices.push(left0, right0, left1);
+            this.indices.push(right0, right1, left1);
+        }
+
+        this.primitiveType = this.scene.gl.TRIANGLES;
+        this.initGLBuffers();
+    }
 }

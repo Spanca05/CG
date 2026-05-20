@@ -81,18 +81,8 @@ export class MyScene extends CGFscene {
 
         this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18);
         this.grassPatch = new MyGrassPatch(this, this.grassBlade, 48, 0.9, 0.34);
-        const deadVariants = [
-            { ambient: [0.45, 0.36, 0.16], diffuse: [0.65, 0.55, 0.25] },
-            { ambient: [0.35, 0.28, 0.12], diffuse: [0.55, 0.45, 0.18] },
-        ];
-        this.deadGrassPatch = new MyGrassPatch(
-            this,
-            this.grassBlade,
-            24,
-            0.6,
-            0.28,
-            deadVariants,
-        );
+        this.deadGrassPatch = new MyGrassPatch(this, this.grassBlade, 30, 0.7, 0.25);
+
         this.grassField = new MyGrassField(
             this,
             this.grassPatch,
@@ -103,9 +93,20 @@ export class MyScene extends CGFscene {
             420,
             0.02,
             0.35,
-            this.deadGrassPatch,
-            0.12,
         );
+
+        this.deadGrassField = new MyGrassField(
+            this,
+            this.deadGrassPatch,
+            this.terrain,
+            10,
+            10,
+            380,
+            380,
+            0.025,
+            0.45,
+        );
+
         this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
 
         this.dirtPatches = [];
@@ -187,12 +188,6 @@ export class MyScene extends CGFscene {
         this.rockAppearance.setDiffuse(0.45, 0.45, 0.45, 1);
         this.rockAppearance.setSpecular(0.08, 0.08, 0.08, 1);
         this.rockAppearance.setShininess(8);
-
-        this.grassAppearance = new CGFappearance(this);
-        this.grassAppearance.setAmbient(0.12, 0.3, 0.07, 1);
-        this.grassAppearance.setDiffuse(0.35, 0.45, 0.18, 1);
-        this.grassAppearance.setSpecular(0, 0, 0, 1);
-        this.grassAppearance.setShininess(1);
 
         this.flowerAppearance = new CGFappearance(this);
         this.flowerAppearance.setAmbient(0.9, 0.2, 0.4, 1);
@@ -481,9 +476,21 @@ export class MyScene extends CGFscene {
             this.scale(this.grassScale, this.grassScale, this.grassScale);
 
             this.setActiveShader(this.grassShader);
-            this.grassAppearance.apply();
+
+            this.grassShader.setUniformsValues({
+                baseColor: [0.18, 0.32, 0.08],
+                tipColor: [0.45, 0.50, 0.18],
+            });
             this.grassField.display();
+
+            this.grassShader.setUniformsValues({
+                baseColor: [0.28, 0.20, 0.07],
+                tipColor: [0.62, 0.54, 0.22],
+            });
+            this.deadGrassField.display();
+
             this.setActiveShader(this.defaultShader);
+
             this.popMatrix();
         }
 
