@@ -11,8 +11,8 @@ export class MyGrassField extends CGFobject {
     depth = 90,
     yOffset = 0.02,
     jitter = 0.35,
-    deadPatch = null,
-    deadChance = 0.0,
+    path = null,
+    pathMargin = 2.0,
   ) {
     super(scene);
 
@@ -24,8 +24,8 @@ export class MyGrassField extends CGFobject {
     this.depth = depth;
     this.yOffset = yOffset;
     this.jitter = jitter;
-    this.deadPatch = deadPatch;
-    this.deadChance = deadChance;
+    this.path = path;
+    this.pathMargin = pathMargin;
     this.terrainYOffset = -1;
 
     this.transforms = [];
@@ -67,8 +67,9 @@ export class MyGrassField extends CGFobject {
         const scale = 0.9 + this.random(seed + 11) * 0.7;
         const rotation = this.random(seed + 19) * Math.PI * 2;
 
-        const isDead =
-          this.deadPatch && this.random(seed + 29) < this.deadChance;
+        if (this.path && this.path.isNearPath(x, z, this.pathMargin)) {
+            continue;
+        }
 
         this.transforms.push({
           x,
@@ -76,7 +77,6 @@ export class MyGrassField extends CGFobject {
           z,
           scale,
           rotation,
-          patchRef: isDead ? this.deadPatch : this.patch,
         });
 
         seed += 23;
@@ -91,8 +91,7 @@ export class MyGrassField extends CGFobject {
       this.scene.rotate(transform.rotation, 0, 1, 0);
       this.scene.scale(transform.scale, transform.scale, transform.scale);
 
-      const patchToDraw = transform.patchRef || this.patch;
-      patchToDraw.display();
+      this.patch.display();
 
       this.scene.popMatrix();
     }
