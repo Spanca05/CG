@@ -75,7 +75,7 @@ export class MyScene extends CGFscene {
 
         this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
 
-        this.rock = new MyRock(this, 16, 10, 1);
+        this.rock = new MyRock(this, 20, 14, 1);
         this.rockField = new MyRockField(
             this,
             this.rock,
@@ -174,11 +174,11 @@ export class MyScene extends CGFscene {
         this.terrainAppearance.setTextureWrap("REPEAT", "REPEAT");
 
         this.pathAppearance = new CGFappearance(this);
-        this.pathAppearance.setAmbient(0.32, 0.24, 0.14, 1);
-        this.pathAppearance.setDiffuse(0.48, 0.36, 0.2, 1);
+        this.pathAppearance.setAmbient(0.9, 0.9, 0.9, 1);
+        this.pathAppearance.setDiffuse(1.0, 1.0, 1.0, 1);
         this.pathAppearance.setSpecular(0.02, 0.02, 0.02, 1);
         this.pathAppearance.setShininess(3);
-        this.pathTexture = new CGFtexture(this, "./textures/ground.jpg");
+        this.pathTexture = new CGFtexture(this, "./textures/stone-pavement.jpg");
         this.pathAppearance.setTexture(this.pathTexture);
         this.pathAppearance.setTextureWrap("REPEAT", "REPEAT");
 
@@ -213,6 +213,18 @@ export class MyScene extends CGFscene {
             time: 0,
             windStrength: 0.18,
             windSpeed: 1.4,
+        });
+
+        this.rockShader = new CGFshader(
+            this.gl,
+            "shaders/rock.vert",
+            "shaders/rock.frag",
+        );
+
+        this.rockShader.setUniformsValues({
+            uNoiseScale: 3.5,
+            uNoiseStrength: 0.45,
+            baseColor: [0.48, 0.45, 0.42],
         });
     }
 
@@ -474,6 +486,12 @@ export class MyScene extends CGFscene {
 
             this.setActiveShader(this.grassShader);
 
+            const grassSunDir = this.getSunDirection();
+            this.grassShader.setUniformsValues({
+                uLightDir: [grassSunDir.x, grassSunDir.y, grassSunDir.z],
+                uLightIntensity: this.sunEnabled ? Math.max(0, this.sunIntensity) : 0.0,
+            });
+
             this.grassShader.setUniformsValues({
                 baseColor: [0.18, 0.32, 0.08],
                 tipColor: [0.45, 0.50, 0.18],
@@ -491,8 +509,15 @@ export class MyScene extends CGFscene {
             this.popMatrix();
         }
 
+        this.setActiveShader(this.rockShader);
         this.rockAppearance.apply();
+        const sunDir = this.getSunDirection();
+        this.rockShader.setUniformsValues({
+            uLightDir: [sunDir.x, sunDir.y, sunDir.z],
+            uLightIntensity: this.sunEnabled ? Math.max(0, this.sunIntensity) : 0.0,
+        });
         this.rockField.display();
+        this.setActiveShader(this.defaultShader);
 
         if (this.showFlowers) {
             for (const flowerType of this.flowerTypes) {
