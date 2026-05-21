@@ -17,6 +17,7 @@ import { MyGrassPatch } from "./elements/grass/MyGrassPatch.js";
 import { MyGrassField } from "./elements/grass/MyGrassField.js";
 import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./elements/MyDirtPatch.js";
+import { MyRockField } from "./elements/MyRockField.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -72,12 +73,17 @@ export class MyScene extends CGFscene {
         this.sunMarker = new MySun(this, 24, 24);
         this.terrain = new MyTerrain(this, 420, 120, 1.2);
 
-        this.rocks = [];
-        this.rocks.push(new MyRock(this, 16, 10, 1));
-        this.rocks.push(new MyRock(this, 12, 8, 2));
-        this.rocks.push(new MyRock(this, 14, 9, 3));
-        this.rocks.push(new MyRock(this, 13, 9, 4));
-        this.rocks.push(new MyRock(this, 15, 10, 5));
+        this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
+
+        this.rock = new MyRock(this, 16, 10, 1);
+        this.rockField = new MyRockField(
+            this,
+            this.rock,
+            this.terrain,
+            this.path,
+            40,
+            300,
+        );
 
         this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18, 8);
         this.grassPatch = new MyGrassPatch(this, this.grassBlade, 180, 2.2, 0.34);
@@ -110,8 +116,6 @@ export class MyScene extends CGFscene {
             this.path,
             2.0
         );
-
-        this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
 
         this.dirtPatches = [];
         const dirtCount = 32;
@@ -285,16 +289,16 @@ export class MyScene extends CGFscene {
         return false;
     }
 
-    isPointNearRock(x, z, clearance = 3.5) {
-        for (let i = 0; i < this.rocks.length; i++) {
-            const rx = 5 + (i % 3) * 8;
-            const rz = 0 + Math.floor(i / 3) * 10;
-            if (this.distanceSquared(x, z, rx, rz) <= clearance * clearance)
-                return true;
-        }
+    //isPointNearRock(x, z, clearance = 3.5) {
+    //    for (let i = 0; i < this.rocks.length; i++) {
+    //        const rx = 5 + (i % 3) * 8;
+    //        const rz = 0 + Math.floor(i / 3) * 10;
+    //        if (this.distanceSquared(x, z, rx, rz) <= clearance * clearance)
+    //            return true;
+    //    }
 
-        return false;
-    }
+    //    return false;
+    //}
 
     isValidFlowerPosition(x, z, minDist, placed) {
         const minDistSq = minDist * minDist;
@@ -306,7 +310,7 @@ export class MyScene extends CGFscene {
 
         if (this.isPointOnPath(x, z)) return false;
         if (this.isPointInsideDirtPatch(x, z)) return false;
-        if (this.isPointNearRock(x, z)) return false;
+        // if (this.isPointNearRock(x, z)) return false;
 
         return true;
     }
@@ -463,17 +467,6 @@ export class MyScene extends CGFscene {
         this.path.display();
         this.popMatrix();
 
-        this.rocks.forEach((rock, i) => {
-            this.pushMatrix();
-            const x = 5 + (i % 3) * 8;
-            const z = 0 + Math.floor(i / 3) * 10;
-            this.translate(x, 1, z);
-            this.scale(2.5 - i * 0.1, 1.4, 2.0);
-            this.rockAppearance.apply();
-            rock.display();
-            this.popMatrix();
-        });
-
         if (this.showGrass) {
             this.pushMatrix();
             this.translate(0, -0.45, 0);
@@ -497,6 +490,9 @@ export class MyScene extends CGFscene {
 
             this.popMatrix();
         }
+
+        this.rockAppearance.apply();
+        this.rockField.display();
 
         if (this.showFlowers) {
             for (const flowerType of this.flowerTypes) {

@@ -38,8 +38,12 @@ export class MyRock extends CGFobject {
         const index = stack * (this.slices + 1) + slice;
 
         // Perturbação do raio
-        const noise = this.random(index);
-        const radius = 1.0 + (noise - 0.5) * 0.35;
+        const variation = 
+            Math.sin(theta * 3 + this.seed) * 0.12 +
+            Math.cos(phi * 4 + this.seed * 0.5) * 0.10 +
+            (this.random(index) - 0.5) * 0.08;
+
+        const radius = 1.0 + variation;
 
         const x = radius * cosPhi * cosTheta;
         const y = radius * sinPhi;
