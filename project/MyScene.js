@@ -16,6 +16,7 @@ import { MyGrassPatch } from "./MyGrassPatch.js";
 import { MyGrassField } from "./MyGrassField.js";
 import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./MyDirtPatch.js";
+import { MyBarn } from "./MyBarn.js";
 
 export class MyScene extends CGFscene {
   constructor() {
@@ -66,7 +67,8 @@ export class MyScene extends CGFscene {
     this.clouds = new MyClouds(this, 40, 20);
     this.sunMarker = new MySun(this, 24, 24);
     this.sunAuraMarker = new MySun(this, 24, 24);
-    this.terrain = new MyTerrain(this, 420, 120, 1.2);
+    this.terrain = new MyTerrain(this, 420, 120, 1.2);    
+    this.barn = new MyBarn(this);
     this.rocks = [];
     this.rocks.push(new MyRock(this, 16, 10, 1));
     this.rocks.push(new MyRock(this, 12, 8, 2));
@@ -364,6 +366,14 @@ export class MyScene extends CGFscene {
 
       this.popMatrix();
     }
+    
+    this.pushMatrix();
+    const barnX = -10;
+    const barnZ = -10;
+    const barnY = this.terrain ? this.terrain.getHeight(barnX, barnZ) : 0;
+    this.translate(barnX, barnY, barnZ);
+    this.barn.display();
+    this.popMatrix();
 
     this.pushMatrix();
     this.translate(0, -1, 0);
