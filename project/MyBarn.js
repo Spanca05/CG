@@ -43,14 +43,14 @@ export class MyBarn extends CGFobject {
     this.p2_y = this.p1_y + this.L2 * Math.sin(theta2);
 
     
-    this.gable = new CGFobject(scene);
+    this.roofwall = new CGFobject(scene);
     
     const h1 = this.p1_y - this.p0_y;
     const h2 = this.p2_y - this.p0_y;
     const px0 = this.p0_x;
     const px1 = this.p1_x;
 
-    this.gable.initBuffers = function () {
+    this.roofwall.initBuffers = function () {
       this.vertices = [
         -px0, 0, 0,   // canto inferior esquerdo
          px0, 0, 0,   // canto inferior direito
@@ -86,7 +86,7 @@ export class MyBarn extends CGFobject {
     };
 
   
-    this.gable.initBuffers();
+    this.roofwall.initBuffers();
   }
 
   initMaterials() {
@@ -99,13 +99,13 @@ export class MyBarn extends CGFobject {
     this.wallAppearance.setTexture(this.wallTexture);
     this.wallAppearance.setTextureWrap("REPEAT", "REPEAT");
    
-    this.gableAppearance = new CGFappearance(this.scene);
-    this.gableAppearance.setAmbient(0.8, 0.7, 0.6, 1.0); 
-    this.gableAppearance.setDiffuse(1.0, 0.9, 0.8, 1.0);
-    this.gableAppearance.setSpecular(0.1, 0.1, 0.1, 1.0);
-    this.gableAppearance.setShininess(10);
-    this.gableAppearance.setTexture(this.wallTexture);
-    this.gableAppearance.setTextureWrap("REPEAT", "REPEAT");
+    this.roofwallAppearance = new CGFappearance(this.scene);
+    this.roofwallAppearance.setAmbient(0.8, 0.7, 0.6, 1.0); 
+    this.roofwallAppearance.setDiffuse(1.0, 0.9, 0.8, 1.0);
+    this.roofwallAppearance.setSpecular(0.1, 0.1, 0.1, 1.0);
+    this.roofwallAppearance.setShininess(10);
+    this.roofwallAppearance.setTexture(this.wallTexture);
+    this.roofwallAppearance.setTextureWrap("REPEAT", "REPEAT");
     
     this.roofAppearance = new CGFappearance(this.scene);
     this.roofAppearance.setAmbient(0.4, 0.35, 0.3, 1.0);
@@ -158,7 +158,7 @@ export class MyBarn extends CGFobject {
     this.windowAppearance.apply();
     this.scene.translate(this.width / 2 + 0.02, this.height * 0.65, 0);
     this.scene.rotate(Math.PI / 2, 0, 1, 0);
-    this.scene.scale(this.width * 0.15, this.width * 0.15, 1);
+    this.scene.scale(this.width * 0.25, this.width * 0.25, 1);
     this.window.display();
     this.scene.popMatrix();
 
@@ -168,13 +168,13 @@ export class MyBarn extends CGFobject {
     
     this.scene.pushMatrix();
     this.scene.translate(0, this.p0_y, this.length / 2);
-    this.gable.display();
+    this.roofwall.display();
     this.scene.popMatrix();
 
     this.scene.pushMatrix();
     this.scene.translate(0, this.p0_y, -this.length / 2);
     this.scene.rotate(Math.PI, 0, 1, 0);
-    this.gable.display();
+    this.roofwall.display();
     this.scene.popMatrix();
 
     this.scene.popMatrix();
