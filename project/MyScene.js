@@ -17,6 +17,7 @@ import { MyGrassPatch } from "./elements/grass/MyGrassPatch.js";
 import { MyGrassField } from "./elements/grass/MyGrassField.js";
 import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./elements/MyDirtPatch.js";
+import { MyWagon } from "./elements/wagon/MyWagon.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -51,6 +52,11 @@ export class MyScene extends CGFscene {
         this.flowersMinDist = 0.5;
 
         this.randomSeed = Date.now();
+
+
+    this.showWagon = true;
+    
+
         this.grassStartTime = 0;
     }
 
@@ -126,6 +132,11 @@ export class MyScene extends CGFscene {
                 new MyDirtPatch(this, this.terrain, x, z, radius, rotation, 24, 0.05),
             );
         }
+  
+
+    // Wagon
+    this.wagon = new MyWagon(this);
+
 
         this.flowersNum = 10;
         this.initFlowers();
@@ -157,7 +168,7 @@ export class MyScene extends CGFscene {
         this.cloudAppearance.setTexture(this.cloudTexture);
         this.cloudAppearance.setTextureWrap("REPEAT", "REPEAT");
 
-        this.setUpdatePeriod(50);
+    this.setUpdatePeriod(1);
 
         this.terrainAppearance = new CGFappearance(this);
         this.terrainTexture = new CGFtexture(this, "./textures/grass.webp");
@@ -384,7 +395,8 @@ export class MyScene extends CGFscene {
         this.grassShader.setUniformsValues({
             time: (t - this.grassStartTime) / 1000,
         });
-    }
+  
+  }
 
     display() {
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -522,5 +534,18 @@ export class MyScene extends CGFscene {
         if (this.displayAxis) {
             this.axis.display();
         }
+  
+
+    // Draw wagon near origin for testing
+    if (this.showWagon) {
+      this.pushMatrix();
+      // place wagon near origin at ground level for testing
+      this.translate(0, 20, 0);
+      this.scale(1.0, 1.0, 1.0);
+      this.wagon.display();
+      this.popMatrix();
     }
+
+
+  }
 }
