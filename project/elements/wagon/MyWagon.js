@@ -3,6 +3,7 @@ import { MyWagonAxle } from "./MyWagonAxle.js";
 import { MyWagonBed } from "./MyWagonBed.js";
 import { MyWagonTongue } from "./MyWagonTongue.js";
 import { MyWagonWheel } from "./MyWagonWheel.js";
+import { MyWagonCover } from "./MyWagonCover.js"; 
 
 export class MyWagon extends CGFobject {
   constructor(scene) {
@@ -14,7 +15,6 @@ export class MyWagon extends CGFobject {
 
     this.wheelRadius = 0.45;
     this.wheelThickness = 0.12;
-
     this.axleRadius = 0.06;
 
     this.tongueLength = 1.8;
@@ -30,14 +30,38 @@ export class MyWagon extends CGFobject {
     this.bed = new MyWagonBed(scene);
     this.tongue = new MyWagonTongue(scene);
 
+    this.initMaterials();
+
+    // REMOVIDO: this.woodTex já não é passado para a capota
+    this.cover = new MyWagonCover(scene, this.width, this.length, 12);
   }
 
+  initMaterials() {
+    this.woodApp = new CGFappearance(this.scene);
+    this.woodApp.setAmbient(0.4, 0.3, 0.2, 1.0);
+    this.woodApp.setDiffuse(0.6, 0.4, 0.2, 1.0);
+    this.woodApp.setSpecular(0.1, 0.1, 0.1, 1.0);
+    this.woodApp.setShininess(10);
+    this.woodTex = new CGFtexture(this.scene, "./textures/wood1_1.png");
+    this.woodApp.setTexture(this.woodTex);
+    this.woodApp.setTextureWrap("REPEAT", "REPEAT");
+
+    this.clothApp = new CGFappearance(this.scene);
+    this.clothApp.setAmbient(0.7, 0.7, 0.65, 1.0);
+    this.clothApp.setDiffuse(0.9, 0.9, 0.85, 1.0); 
+    this.clothApp.setSpecular(0.05, 0.05, 0.05, 1.0); 
+    this.clothApp.setShininess(2);
+    // CRÍTICO: Garante que a lona não herda a textura de madeira do chassis
+    this.clothApp.setTexture(null); 
+  }
+    
   display() {
     const scene = this.scene;
 
     scene.pushMatrix();
 
-    if (this.wagonAppearance) this.wagonAppearance.apply();
+    // Começamos por aplicar a madeira para desenhar a base da carroça toda
+    this.woodApp.apply();
 
     const x = this.length / 2 - 0.4;
     const z = this.width / 2 + 0.05;
@@ -47,11 +71,7 @@ export class MyWagon extends CGFobject {
     const bedHeight = this.height * 0.7;
     const supportHeight = bedY - bedHeight / 2 - wheelY;
 
-    // wheel rotation (degrees) provided by scene, default 0
-    const wheelDeg =
-      scene && typeof scene.wheelRotationDeg === "number"
-        ? scene.wheelRotationDeg
-        : 0;
+    const wheelDeg = scene && typeof scene.wheelRotationDeg === "number" ? scene.wheelRotationDeg : 0;
     const wheelRad = (wheelDeg * Math.PI) / 180.0;
 
     // Bed
@@ -61,7 +81,7 @@ export class MyWagon extends CGFobject {
     this.bed.display();
     scene.popMatrix();
 
-    // Front axle connecting the two front wheel centers
+    // Front axle 
     scene.pushMatrix();
     scene.translate(-x, wheelY, 0);
     scene.translate(0, 0, -0.5 * axleLength);
@@ -69,7 +89,7 @@ export class MyWagon extends CGFobject {
     this.axle.display();
     scene.popMatrix();
 
-    // Back axle connecting the two back wheel centers
+    // Back axle 
     scene.pushMatrix();
     scene.translate(x, wheelY, 0);
     scene.translate(0, 0, -0.5 * axleLength);
@@ -77,8 +97,7 @@ export class MyWagon extends CGFobject {
     this.axle.display();
     scene.popMatrix();
 
-    // Wheels
-    // Front-left
+    // Wheels - Front-left
     scene.pushMatrix();
     scene.translate(-x, wheelY, z);
     scene.rotate(wheelRad, 0, 0, 1);
@@ -127,13 +146,22 @@ export class MyWagon extends CGFobject {
 
     // Perpendicular tongue to make a cross
     scene.pushMatrix();
-    scene.translate(
-      -x - this.tongueLength / 2 - 0.35,
-      wheelY + 0.02,
-      -this.tongueLength / 2,
-    );
+    scene.translate(-x - this.tongueLength / 2 - 0.35, wheelY + 0.02, -this.tongueLength / 2);
     scene.scale(this.tongueWidth, this.tongueHeight, this.tongueLength);
     this.tongue.display();
+    scene.popMatrix();
+
+   
+    scene.pushMatrix();
+    scene.translate(0, bedY + bedHeight / 2, 0);
+    
+    this.clothApp.apply(); 
+    this.cover.display();
+    
+    
+    
+    
+    scene.popMatrix();
 
     scene.popMatrix();
   }
