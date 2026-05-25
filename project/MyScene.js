@@ -17,7 +17,7 @@ import { MyGrassPatch } from "./elements/grass/MyGrassPatch.js";
 import { MyGrassField } from "./elements/grass/MyGrassField.js";
 import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./elements/MyDirtPatch.js";
-import { MyBarn } from "./MyBarn.js";
+import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
 
 export class MyScene extends CGFscene {

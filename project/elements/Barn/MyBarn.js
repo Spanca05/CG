@@ -1,6 +1,6 @@
-import { CGFobject, CGFappearance, CGFtexture } from "../lib/CGF.js";
-import { MyUnitCubeQuad } from "./MyUnitCubeQuad.js";
-import { MyQuad } from "./MyQuad.js";
+import { CGFobject, CGFappearance, CGFtexture } from "../../../lib/CGF.js";
+import { MyUnitCubeQuad } from "../../tps/MyUnitCubeQuad.js";
+import { MyQuad } from "../../tps/MyQuad.js";
 
 export class MyBarn extends CGFobject {
   constructor(scene) {
