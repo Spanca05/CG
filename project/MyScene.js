@@ -19,6 +19,7 @@ import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./elements/MyDirtPatch.js";
 import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
+import { MyHayBale } from "./elements/hay/MyHayBale.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -80,6 +81,7 @@ export class MyScene extends CGFscene {
         this.terrain = new MyTerrain(this, 420, 120, 1.2);    
 
         this.barn = new MyBarn(this);
+        this.hayBale = new MyHayBale(this);
     this.rocks = [];
         this.rocks.push(new MyRock(this, 16, 10, 1));
         this.rocks.push(new MyRock(this, 12, 8, 2));
@@ -464,6 +466,14 @@ export class MyScene extends CGFscene {
     const barnY = this.terrain ? this.terrain.getHeight(barnX, barnZ) : 0;
     this.translate(barnX, barnY, barnZ);
     this.barn.display();
+    this.popMatrix();
+
+    this.pushMatrix();
+    const hayX = 5;
+    const hayZ = 10;
+    const hayY = 10;
+    this.translate(hayX, hayY, hayZ);
+    this.hayBale.display();
     this.popMatrix();
 
         this.pushMatrix();
