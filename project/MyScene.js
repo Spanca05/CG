@@ -71,9 +71,9 @@ export class MyScene extends CGFscene {
         this.sky = new MySky(this, 40, 20);
         this.clouds = new MyClouds(this, 40, 20);
         this.sunMarker = new MySun(this, 24, 24);
-        this.terrain = new MyTerrain(this, 420, 120, 1.2);
+        this.terrain = new MyTerrain(this, 420, 120, 20, 0.015);
 
-        this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
+        this.path = new MyPath(this, this.terrain, 500, 14, 150, 0.32);
 
         this.rock = new MyRock(this, 20, 14, 1);
         this.rockField = new MyRockField(
@@ -226,6 +226,21 @@ export class MyScene extends CGFscene {
             uNoiseStrength: 0.45,
             baseColor: [0.48, 0.45, 0.42],
         });
+
+        this.terrainShader = new CGFshader(
+            this.gl,
+            "shaders/terrain.vert",
+            "shaders/terrain.frag",
+        );
+
+        this.terrainShader.setUniformsValues({
+            uHeightScale: this.terrain.heightScale,
+            uNoiseScale: this.terrain.noiseScale,
+            uSampler: 0,
+            uPathSampler: 1,
+        });
+
+        this.mipmapsReady = false;
     }
 
     initFlowers() {
@@ -460,11 +475,48 @@ export class MyScene extends CGFscene {
             this.popMatrix();
         }
 
+        if (!this.mipmapsReady) {
+            const textures = [this.terrainTexture, this.pathTexture];
+            if (textures.every(tex => tex.texID !== -1)) {
+                const anisoExt = this.gl.getExtension('EXT_texture_filter_anisotropic');
+                textures.forEach(tex => {
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, tex.texID);
+                    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+                    this.gl.texParameteri(this.gl.TEXTURE_2D,
+                        this.gl.TEXTURE_MIN_FILTER,
+                        this.gl.LINEAR_MIPMAP_LINEAR);
+                    if (anisoExt) {
+                        const maxAniso = this.gl.getParameter(
+                            anisoExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                        this.gl.texParameterf(this.gl.TEXTURE_2D,
+                            anisoExt.TEXTURE_MAX_ANISOTROPY_EXT,
+                            Math.min(16, maxAniso));
+                    }
+                });
+                this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+                this.mipmapsReady = true;
+            }
+        }
+
         this.pushMatrix();
         this.translate(0, -1, 0);
+        this.setActiveShader(this.terrainShader);
+        const terrainSunDir = this.getSunDirection();
+        this.terrainShader.setUniformsValues({
+            uLightDir: [terrainSunDir.x, terrainSunDir.y, terrainSunDir.z],
+            uLightIntensity: this.sunEnabled ? Math.max(0, this.sunIntensity) : 0.0,
+        });
         this.terrainAppearance.apply();
+        this.gl.activeTexture(this.gl.TEXTURE1);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.pathTexture.texID);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.enable(this.gl.POLYGON_OFFSET_FILL);
+        this.gl.polygonOffset(2, 2);
         this.terrain.display();
-
+        this.gl.disable(this.gl.POLYGON_OFFSET_FILL);
+        this.setActiveShader(this.defaultShader);
         this.popMatrix();
 
         this.pushMatrix();
@@ -474,10 +526,7 @@ export class MyScene extends CGFscene {
         }
         this.popMatrix();
 
-        this.pushMatrix();
-        this.pathAppearance.apply();
-        this.path.display();
-        this.popMatrix();
+        // path is now rendered as a texture blend in terrain.frag
 
         if (this.showGrass) {
             this.pushMatrix();
