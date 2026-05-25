@@ -32,8 +32,7 @@ export class MyWagon extends CGFobject {
 
     this.initMaterials();
 
-    // REMOVIDO: this.woodTex já não é passado para a capota
-    this.cover = new MyWagonCover(scene, this.width, this.length, 12);
+    this.cover = new MyWagonCover(scene, this.width, this.length, 12, this.woodTex);
   }
 
   initMaterials() {
@@ -51,7 +50,7 @@ export class MyWagon extends CGFobject {
     this.clothApp.setDiffuse(0.9, 0.9, 0.85, 1.0); 
     this.clothApp.setSpecular(0.05, 0.05, 0.05, 1.0); 
     this.clothApp.setShininess(2);
-    // CRÍTICO: Garante que a lona não herda a textura de madeira do chassis
+
     this.clothApp.setTexture(null); 
   }
     
@@ -60,7 +59,6 @@ export class MyWagon extends CGFobject {
 
     scene.pushMatrix();
 
-    // Começamos por aplicar a madeira para desenhar a base da carroça toda
     this.woodApp.apply();
 
     const x = this.length / 2 - 0.4;
@@ -158,8 +156,8 @@ export class MyWagon extends CGFobject {
     this.clothApp.apply(); 
     this.cover.display();
     
-    
-    
+    this.woodApp.apply();
+    this.cover.displayArches();
     
     scene.popMatrix();
 
