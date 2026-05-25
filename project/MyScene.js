@@ -20,6 +20,7 @@ import { MyDirtPatch } from "./elements/MyDirtPatch.js";
 import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
 import { MyHayBale } from "./elements/hay/MyHayBale.js";
+import { MyDropZone } from "./elements/Barn/MyDropZone.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -82,7 +83,8 @@ export class MyScene extends CGFscene {
 
         this.barn = new MyBarn(this);
         this.hayBale = new MyHayBale(this);
-    this.rocks = [];
+        this.dropZone = new MyDropZone(this, 5.0);
+        this.rocks = [];
         this.rocks.push(new MyRock(this, 16, 10, 1));
         this.rocks.push(new MyRock(this, 12, 8, 2));
         this.rocks.push(new MyRock(this, 14, 9, 3));
@@ -440,7 +442,7 @@ export class MyScene extends CGFscene {
             this.gl.depthMask(true);
             this.gl.disable(this.gl.BLEND);
             this.popMatrix();
-        }
+        }                                               
 
         if (this.showSunMarker) {
             const sunDir = this.getSunDirection();
@@ -466,6 +468,14 @@ export class MyScene extends CGFscene {
     const barnY = this.terrain ? this.terrain.getHeight(barnX, barnZ) : 0;
     this.translate(barnX, barnY, barnZ);
     this.barn.display();
+    this.popMatrix();
+    
+    this.pushMatrix();
+    const dropZoneX = 0;
+    const dropZoneZ = 10;
+    const dropZoneY = this.terrain ? this.terrain.getHeight(dropZoneX, dropZoneZ) : 0;
+    this.translate(dropZoneX, dropZoneY + 0.01, dropZoneZ); 
+    this.dropZone.display();
     this.popMatrix();
 
     this.pushMatrix();
@@ -556,15 +566,14 @@ export class MyScene extends CGFscene {
         }
   
 
-    // Draw wagon near origin for testing
     if (this.showWagon) {
       this.pushMatrix();
-      // place wagon near origin at ground level for testing
       this.translate(0, 20, 0);
       this.scale(1.0, 1.0, 1.0);
       this.wagon.display();
       this.popMatrix();
     }
+    
 
 
   }

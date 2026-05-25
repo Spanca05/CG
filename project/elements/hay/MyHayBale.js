@@ -32,7 +32,7 @@ export class MyHayBale extends CGFobject {
   }
 
   display() {
-    const length = 1.5; 
+    const length = 3.0; 
     const height = 1.0; 
     const depth = 1.0;  
 
