@@ -8,9 +8,9 @@ export class MyBarn extends CGFobject {
   constructor(scene) {
     super(scene);
 
-    this.width = 10.0;
-    this.height = 5.0;
-    this.length = 12.0;
+    this.width = 12.0;
+    this.height = 6.0;
+    this.length = 14.0;
     
     const theta1 = (60 * Math.PI) / 180;
     const theta2 = (25 * Math.PI) / 180;

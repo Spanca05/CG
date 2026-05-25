@@ -9,9 +9,9 @@ export class MyWagon extends CGFobject {
   constructor(scene) {
     super(scene);
 
-    this.width = 2.0;
-    this.length = 3.0;
-    this.height = 0.25;
+    this.width = 2.6;
+    this.length = 4.0;
+    this.height = 0.32;
 
     this.wheelRadius = 0.45;
     this.wheelThickness = 0.12;
