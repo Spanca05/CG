@@ -37,6 +37,19 @@ export class MyPath extends CGFobject {
         return this.terrain.getHeight(x, z) - 1;
     }
 
+    isNearPath(x, z, margin = 0) {
+        const halfLength = this.length / 2;
+
+        if (z < -halfLength || z > halfLength) {
+            return false;
+        }
+
+        const centerX = this.getCenterX(z);
+        const halfWidth = this.width / 2;
+
+        return Math.abs(x - centerX) <= halfWidth + margin;
+    }
+
     initBuffers() {
         this.vertices = [];
         this.indices = [];

@@ -13,7 +13,7 @@ export class MyInterface extends CGFinterface {
     const sceneFolder = this.gui.addFolder("Scene");
     sceneFolder.add(this.scene, "displayAxis").name("Display Axis");
     sceneFolder.open();
-
+    
     const skyFolder = this.gui.addFolder("Sky");
     skyFolder.add(this.scene, "showSky").name("Visible");
     skyFolder.add(this.scene, "useSkyTexture").name("Use Texture");
@@ -42,12 +42,12 @@ export class MyInterface extends CGFinterface {
 
     const flowersFolder = this.gui.addFolder("Flowers");
     flowersFolder.add(this.scene, "showFlowers").name("Visible");
-    flowersFolder.add(this.scene, "flowersStemHeight", 1, 100, 1).name("Stem Height");
-    flowersFolder.add(this.scene, "flowersNumberPetals", 3, 10, 1).name("Petals");
-    flowersFolder.add(this.scene, "flowersNumberLeaves", 0, 10, 1).name("Leaves");
-    flowersFolder.add(this.scene, "flowersColorVariation", 0, 1, 0.1).name("Color Variation");
     flowersFolder.open();
 
+    const wagonFolder = this.gui.addFolder("Wagon");
+    wagonFolder.add(this.scene, "showWagon").name("Show Wagon");
+    wagonFolder.open();
+  
     return true;
   }
 }
