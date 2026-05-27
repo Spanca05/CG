@@ -10,6 +10,7 @@ export class MyRockField extends CGFobject {
         areaSize = 180,
         yOffset = 0.05,
         dirtPatches = null,
+        barn = null,
     ) {
         super(scene);
 
@@ -17,6 +18,7 @@ export class MyRockField extends CGFobject {
         this.terrain = terrain;
         this.path = path;
         this.dirtPatches = dirtPatches;
+        this.barn = barn;
 
         this.rockCount = rockCount;
         this.areaSize = areaSize;
@@ -69,6 +71,12 @@ export class MyRockField extends CGFobject {
                     }
                 }
                 if (onDirt) { seed += 13; attempts++; continue; }
+            }
+
+            if (this.barn) {
+                const dx = x - this.barn.x, dz = z - this.barn.z;
+                const r = Math.sqrt((this.barn.width/2)**2 + (this.barn.length/2)**2) + 4;
+                if (dx*dx + dz*dz <= r*r) { seed += 13; attempts++; continue; }
             }
 
             let tooClose = false;

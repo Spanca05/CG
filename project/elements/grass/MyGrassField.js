@@ -14,6 +14,7 @@ export class MyGrassField extends CGFobject {
     path = null,
     pathMargin = 2.0,
     dirtPatches = null,
+    barn = null,
   ) {
     super(scene);
 
@@ -28,6 +29,7 @@ export class MyGrassField extends CGFobject {
     this.path = path;
     this.pathMargin = pathMargin;
     this.dirtPatches = dirtPatches;
+    this.barn = barn;
     this.terrainYOffset = -1;
 
     this.transforms = [];
@@ -83,6 +85,12 @@ export class MyGrassField extends CGFobject {
             }
           }
           if (onDirt) continue;
+        }
+
+        if (this.barn) {
+          const dx = x - this.barn.x, dz = z - this.barn.z;
+          const r = Math.sqrt((this.barn.width/2)**2 + (this.barn.length/2)**2) + 4;
+          if (dx*dx + dz*dz <= r*r) continue;
         }
 
         this.transforms.push({

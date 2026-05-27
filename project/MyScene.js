@@ -57,8 +57,8 @@ export class MyScene extends CGFscene {
         this.randomSeed = Date.now();
 
 
-    this.showWagon = true;
-    
+        this.showWagon = true;
+
 
         this.grassStartTime = 0;
     }
@@ -83,6 +83,7 @@ export class MyScene extends CGFscene {
 
         this.path = new MyPath(this, this.terrain, 500, 14, 150, 0.32);
         this.barn = new MyBarn(this);
+
         this.hayBale = new MyHayBale(this);
         this.wagon = new MyWagon(this);
 
@@ -106,6 +107,7 @@ export class MyScene extends CGFscene {
             300,
             0.05,
             this.dirtPatches,
+            this.barn,
         );
 
         this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18, 8);
@@ -125,6 +127,7 @@ export class MyScene extends CGFscene {
             this.path,
             2.0,
             this.dirtPatches,
+            this.barn,
         );
 
         this.deadGrassField = new MyGrassField(
@@ -140,6 +143,7 @@ export class MyScene extends CGFscene {
             this.path,
             2.0,
             this.dirtPatches,
+            this.barn,
         );
 
         this.flowersNum = 10;
@@ -172,7 +176,7 @@ export class MyScene extends CGFscene {
         this.cloudAppearance.setTexture(this.cloudTexture);
         this.cloudAppearance.setTextureWrap("REPEAT", "REPEAT");
 
-    this.setUpdatePeriod(1);
+        this.setUpdatePeriod(1);
 
         this.terrainAppearance = new CGFappearance(this);
         this.terrainTexture = new CGFtexture(this, "./textures/grass.webp");
@@ -258,9 +262,9 @@ export class MyScene extends CGFscene {
         const posData = new Float32Array(32 * 2).fill(0);
         const radData = new Float32Array(32).fill(-2.0); // -2 = inactive (blend → 0)
         for (let i = 0; i < Math.min(this.dirtPatches.length, 32); i++) {
-            posData[i * 2]     = this.dirtPatches[i].centerX;
+            posData[i * 2] = this.dirtPatches[i].centerX;
             posData[i * 2 + 1] = this.dirtPatches[i].centerZ;
-            radData[i]         = this.dirtPatches[i].radius;
+            radData[i] = this.dirtPatches[i].radius;
         }
         this.gl.uniform2fv(this.gl.getUniformLocation(prog, 'uPatchPos'), posData);
         this.gl.uniform1fv(this.gl.getUniformLocation(prog, 'uPatchRadius'), radData);
@@ -440,8 +444,8 @@ export class MyScene extends CGFscene {
         this.grassShader.setUniformsValues({
             time: (t - this.grassStartTime) / 1000,
         });
-  
-  }
+
+    }
 
     display() {
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -523,22 +527,21 @@ export class MyScene extends CGFscene {
                 this.mipmapsReady = true;
             }
         }
-    
-    this.pushMatrix();
-    const barnX = -10;
-    const barnZ = -10;
-    const barnY = this.terrain ? this.terrain.getHeight(barnX, barnZ) : 0;
-    this.translate(barnX, barnY, barnZ);
-    this.barn.display();
-    this.popMatrix();
 
-    this.pushMatrix();
-    const hayX = 5;
-    const hayZ = 10;
-    const hayY = 10;
-    this.translate(hayX, hayY, hayZ);
-    this.hayBale.display();
-    this.popMatrix();
+        this.pushMatrix();
+        const barnY = this.terrain ? this.terrain.getHeight(this.barn.x, this.barn.z) - 1 : 0;
+        this.translate(this.barn.x, barnY, this.barn.z);
+        this.rotate(3 * Math.PI / 4, 0, 1, 0);
+        this.barn.display();
+        this.popMatrix();
+
+        this.pushMatrix();
+        const hayX = 5;
+        const hayZ = 10;
+        const hayY = 10;
+        this.translate(hayX, hayY, hayZ);
+        this.hayBale.display();
+        this.popMatrix();
 
         this.pushMatrix();
         this.translate(0, -1, 0);
@@ -631,18 +634,18 @@ export class MyScene extends CGFscene {
         if (this.displayAxis) {
             this.axis.display();
         }
-  
 
-    // Draw wagon near origin for testing
-    if (this.showWagon) {
-      this.pushMatrix();
-      // place wagon near origin at ground level for testing
-      this.translate(0, 20, 0);
-      this.scale(1.0, 1.0, 1.0);
-      this.wagon.display();
-      this.popMatrix();
+
+        // Draw wagon near origin for testing
+        if (this.showWagon) {
+            this.pushMatrix();
+            // place wagon near origin at ground level for testing
+            this.translate(0, 20, 0);
+            this.scale(1.0, 1.0, 1.0);
+            this.wagon.display();
+            this.popMatrix();
+        }
+
+
     }
-
-
-  }
 }
