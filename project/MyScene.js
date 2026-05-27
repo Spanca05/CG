@@ -18,6 +18,9 @@ import { MyGrassField } from "./elements/grass/MyGrassField.js";
 import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./elements/MyDirtPatch.js";
 import { MyRockField } from "./elements/MyRockField.js";
+import { MyBarn } from "./elements/Barn/MyBarn.js";
+import { MyWagon } from "./elements/wagon/MyWagon.js";
+import { MyHayBale } from "./elements/hay/MyHayBale.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -52,6 +55,11 @@ export class MyScene extends CGFscene {
         this.flowersMinDist = 0.5;
 
         this.randomSeed = Date.now();
+
+
+    this.showWagon = true;
+    
+
         this.grassStartTime = 0;
     }
 
@@ -74,14 +82,14 @@ export class MyScene extends CGFscene {
         this.terrain = new MyTerrain(this, 420, 120, 20, 0.015);
 
         this.path = new MyPath(this, this.terrain, 500, 14, 150, 0.32);
+        this.barn = new MyBarn(this);
+        this.hayBale = new MyHayBale(this);
 
-        // Dirt patches are rendered as a texture blend in terrain.frag (uPatchPos/uPatchRadius).
-        // The objects store position/radius for grass and rock placement to avoid overlapping.
         this.dirtPatches = [];
         const spread = this.terrain.size * 0.9; // place patches within 90% of terrain, away from edges
         for (let i = 0; i < 32; i++) {
             const seed = i * 37 + 13;
-            const x = (this.random(seed)     - 0.5) * spread;
+            const x = (this.random(seed) - 0.5) * spread;
             const z = (this.random(seed + 7) - 0.5) * spread;
             const radius = 2.0 + this.random(seed + 11) * 6.0;
             this.dirtPatches.push(new MyDirtPatch(this, this.terrain, x, z, radius));
@@ -163,7 +171,7 @@ export class MyScene extends CGFscene {
         this.cloudAppearance.setTexture(this.cloudTexture);
         this.cloudAppearance.setTextureWrap("REPEAT", "REPEAT");
 
-        this.setUpdatePeriod(50);
+    this.setUpdatePeriod(1);
 
         this.terrainAppearance = new CGFappearance(this);
         this.terrainTexture = new CGFtexture(this, "./textures/grass.webp");
@@ -431,7 +439,8 @@ export class MyScene extends CGFscene {
         this.grassShader.setUniformsValues({
             time: (t - this.grassStartTime) / 1000,
         });
-    }
+  
+  }
 
     display() {
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -513,6 +522,22 @@ export class MyScene extends CGFscene {
                 this.mipmapsReady = true;
             }
         }
+    
+    this.pushMatrix();
+    const barnX = -10;
+    const barnZ = -10;
+    const barnY = this.terrain ? this.terrain.getHeight(barnX, barnZ) : 0;
+    this.translate(barnX, barnY, barnZ);
+    this.barn.display();
+    this.popMatrix();
+
+    this.pushMatrix();
+    const hayX = 5;
+    const hayZ = 10;
+    const hayY = 10;
+    this.translate(hayX, hayY, hayZ);
+    this.hayBale.display();
+    this.popMatrix();
 
         this.pushMatrix();
         this.translate(0, -1, 0);
@@ -605,5 +630,18 @@ export class MyScene extends CGFscene {
         if (this.displayAxis) {
             this.axis.display();
         }
+  
+
+    // Draw wagon near origin for testing
+    if (this.showWagon) {
+      this.pushMatrix();
+      // place wagon near origin at ground level for testing
+      this.translate(0, 20, 0);
+      this.scale(1.0, 1.0, 1.0);
+      this.wagon.display();
+      this.popMatrix();
     }
+
+
+  }
 }
