@@ -13,6 +13,7 @@ export class MyGrassField extends CGFobject {
     jitter = 0.35,
     path = null,
     pathMargin = 2.0,
+    dirtPatches = null,
   ) {
     super(scene);
 
@@ -26,6 +27,7 @@ export class MyGrassField extends CGFobject {
     this.jitter = jitter;
     this.path = path;
     this.pathMargin = pathMargin;
+    this.dirtPatches = dirtPatches;
     this.terrainYOffset = -1;
 
     this.transforms = [];
@@ -69,6 +71,18 @@ export class MyGrassField extends CGFobject {
 
         if (this.path && this.path.isNearPath(x, z, this.pathMargin)) {
             continue;
+        }
+
+        if (this.dirtPatches) {
+          let onDirt = false;
+          for (const patch of this.dirtPatches) {
+            const dx = x - patch.centerX, dz = z - patch.centerZ;
+            if (dx*dx + dz*dz <= (patch.radius + 1.5) * (patch.radius + 1.5)) {
+              onDirt = true;
+              break;
+            }
+          }
+          if (onDirt) continue;
         }
 
         this.transforms.push({

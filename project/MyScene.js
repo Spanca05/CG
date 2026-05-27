@@ -75,6 +75,18 @@ export class MyScene extends CGFscene {
 
         this.path = new MyPath(this, this.terrain, 500, 14, 150, 0.32);
 
+        // Dirt patches are rendered as a texture blend in terrain.frag (uPatchPos/uPatchRadius).
+        // The objects store position/radius for grass and rock placement to avoid overlapping.
+        this.dirtPatches = [];
+        const spread = this.terrain.size * 0.9; // place patches within 90% of terrain, away from edges
+        for (let i = 0; i < 32; i++) {
+            const seed = i * 37 + 13;
+            const x = (this.random(seed)     - 0.5) * spread;
+            const z = (this.random(seed + 7) - 0.5) * spread;
+            const radius = 2.0 + this.random(seed + 11) * 6.0;
+            this.dirtPatches.push(new MyDirtPatch(this, this.terrain, x, z, radius));
+        }
+
         this.rock = new MyRock(this, 20, 14, 1);
         this.rockField = new MyRockField(
             this,
@@ -83,6 +95,8 @@ export class MyScene extends CGFscene {
             this.path,
             40,
             300,
+            0.05,
+            this.dirtPatches,
         );
 
         this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18, 8);
@@ -100,7 +114,8 @@ export class MyScene extends CGFscene {
             0.02,
             0.35,
             this.path,
-            2.0
+            2.0,
+            this.dirtPatches,
         );
 
         this.deadGrassField = new MyGrassField(
@@ -114,22 +129,9 @@ export class MyScene extends CGFscene {
             0.025,
             0.45,
             this.path,
-            2.0
+            2.0,
+            this.dirtPatches,
         );
-
-        this.dirtPatches = [];
-        const dirtCount = 32;
-        const half = this.terrain.size / 2;
-        for (let i = 0; i < dirtCount; i++) {
-            const seed = i * 37 + 13;
-            const x = this.random(seed) * (this.terrain.size * 0.9) - half * 0.9;
-            const z = this.random(seed + 7) * (this.terrain.size * 0.9) - half * 0.9;
-            const radius = 2.0 + this.random(seed + 11) * 6.0;
-            const rotation = this.random(seed + 19) * Math.PI * 2;
-            this.dirtPatches.push(
-                new MyDirtPatch(this, this.terrain, x, z, radius, rotation, 24, 0.05),
-            );
-        }
 
         this.flowersNum = 10;
         this.initFlowers();
@@ -238,7 +240,21 @@ export class MyScene extends CGFscene {
             uNoiseScale: this.terrain.noiseScale,
             uSampler: 0,
             uPathSampler: 1,
+            uDirtSampler: 2,
         });
+
+        // Upload patch positions and radii as uniform arrays (raw WebGL — CGF has no array API)
+        const prog = this.terrainShader.program;
+        this.gl.useProgram(prog);
+        const posData = new Float32Array(32 * 2).fill(0);
+        const radData = new Float32Array(32).fill(-2.0); // -2 = inactive (blend → 0)
+        for (let i = 0; i < Math.min(this.dirtPatches.length, 32); i++) {
+            posData[i * 2]     = this.dirtPatches[i].centerX;
+            posData[i * 2 + 1] = this.dirtPatches[i].centerZ;
+            radData[i]         = this.dirtPatches[i].radius;
+        }
+        this.gl.uniform2fv(this.gl.getUniformLocation(prog, 'uPatchPos'), posData);
+        this.gl.uniform1fv(this.gl.getUniformLocation(prog, 'uPatchRadius'), radData);
 
         this.mipmapsReady = false;
     }
@@ -476,7 +492,7 @@ export class MyScene extends CGFscene {
         }
 
         if (!this.mipmapsReady) {
-            const textures = [this.terrainTexture, this.pathTexture];
+            const textures = [this.terrainTexture, this.pathTexture, this.dirtTexture];
             if (textures.every(tex => tex.texID !== -1)) {
                 const anisoExt = this.gl.getExtension('EXT_texture_filter_anisotropic');
                 textures.forEach(tex => {
@@ -511,6 +527,10 @@ export class MyScene extends CGFscene {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.pathTexture.texID);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.activeTexture(this.gl.TEXTURE2);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.dirtTexture.texID);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
         this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.enable(this.gl.POLYGON_OFFSET_FILL);
         this.gl.polygonOffset(2, 2);
@@ -519,14 +539,7 @@ export class MyScene extends CGFscene {
         this.setActiveShader(this.defaultShader);
         this.popMatrix();
 
-        this.pushMatrix();
-        this.dirtAppearance.apply();
-        for (const patch of this.dirtPatches) {
-            patch.display();
-        }
-        this.popMatrix();
-
-        // path is now rendered as a texture blend in terrain.frag
+        // dirt patches and path are now rendered as texture blends in terrain.frag
 
         if (this.showGrass) {
             this.pushMatrix();

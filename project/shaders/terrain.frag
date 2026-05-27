@@ -6,8 +6,12 @@ varying vec2 vWorldXZ;
 
 uniform sampler2D uSampler;      // grass texture (unit 0)
 uniform sampler2D uPathSampler;  // path texture  (unit 1)
+uniform sampler2D uDirtSampler;  // dirt texture  (unit 2)
 uniform vec3 uLightDir;
 uniform float uLightIntensity;
+
+uniform vec2 uPatchPos[32];
+uniform float uPatchRadius[32];
 
 float pathCenterX(float z) {
     return sin(z * 0.035) * 9.0 + sin(z * 0.18) * 0.35;
@@ -32,6 +36,17 @@ void main() {
     vec4 terrainColor = texture2D(uSampler,     vTexCoord);
     vec4 pathColor    = texture2D(uPathSampler, pathUV);
     vec4 texColor     = mix(terrainColor, pathColor, blend);
+
+    // Dirt patches: loop over all 32 slots (inactive patches have radius < 0)
+    float dirtBlend = 0.0;
+    for (int i = 0; i < 32; i++) {
+        float d = length(vWorldXZ - uPatchPos[i]);
+        float r = uPatchRadius[i];
+        dirtBlend = max(dirtBlend, 1.0 - smoothstep(r - 1.5, r + 1.5, d));
+    }
+    vec2 dirtUV = vWorldXZ / 6.0;
+    vec4 dirtColor = texture2D(uDirtSampler, dirtUV) * vec4(0.52, 0.38, 0.18, 1.0);
+    texColor = mix(texColor, dirtColor, dirtBlend);
 
     vec3 n = normalize(vNormal);
     float diffuse = max(dot(n, normalize(uLightDir)), 0.0);

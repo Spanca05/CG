@@ -9,12 +9,14 @@ export class MyRockField extends CGFobject {
         rockCount = 30,
         areaSize = 180,
         yOffset = 0.05,
+        dirtPatches = null,
     ) {
         super(scene);
 
         this.rock = rock;
         this.terrain = terrain;
         this.path = path;
+        this.dirtPatches = dirtPatches;
 
         this.rockCount = rockCount;
         this.areaSize = areaSize;
@@ -48,13 +50,25 @@ export class MyRockField extends CGFobject {
             this.transforms.length < this.rockCount &&
             attempts < this.rockCount * 20
         ) {
-            const x = (this.random(seed) - 0.5) * this.areaSize;
-            const z = (this.random(seed + 100) - 0.5) * this.areaSize;
+            const x = (this.random(seed * 127 + 1) - 0.5) * this.areaSize;
+            const z = (this.random(seed * 311 + 7) - 0.5) * this.areaSize;
 
             if (this.path && this.path.isNearPath(x, z, 7)) {
                 seed += 13;
                 attempts++;
                 continue;
+            }
+
+            if (this.dirtPatches) {
+                let onDirt = false;
+                for (const patch of this.dirtPatches) {
+                    const dx = x - patch.centerX, dz = z - patch.centerZ;
+                    if (dx*dx + dz*dz <= (patch.radius + 3) * (patch.radius + 3)) {
+                        onDirt = true;
+                        break;
+                    }
+                }
+                if (onDirt) { seed += 13; attempts++; continue; }
             }
 
             let tooClose = false;
