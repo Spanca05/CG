@@ -84,6 +84,7 @@ export class MyScene extends CGFscene {
         this.path = new MyPath(this, this.terrain, 500, 14, 150, 0.32);
         this.barn = new MyBarn(this);
         this.hayBale = new MyHayBale(this);
+        this.wagon = new MyWagon(this);
 
         this.dirtPatches = [];
         const spread = this.terrain.size * 0.9; // place patches within 90% of terrain, away from edges
