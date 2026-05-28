@@ -21,6 +21,7 @@ import { MyRockField } from "./elements/MyRockField.js";
 import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
 import { MyHayBale } from "./elements/hay/MyHayBale.js";
+import { gui } from "../lib/dat.gui.module.min.js";
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -59,8 +60,14 @@ export class MyScene extends CGFscene {
 
         this.showWagon = true;
 
-
         this.grassStartTime = 0;
+
+        this.wagonX = 0;
+        this.wagonZ = 0;
+        this.wagonAngle = 0;
+        this.wagonSpeed = 0;
+
+        this.useFollowCamera = true;
     }
 
     init(application) {
@@ -426,6 +433,32 @@ export class MyScene extends CGFscene {
         );
     }
 
+    checkKeys(dt) {
+        if (this.gui.isKeyPressed("KeyW")) {
+            this.wagonSpeed += 8 * dt;
+        }
+
+        if (this.gui.isKeyPressed("KeyS")) {
+            this.wagonSpeed -= 12 * dt;
+            if (this.wagonSpeed < 0) this.wagonSpeed = 0;
+        }
+
+        if (this.gui.isKeyPressed("KeyA")) {
+            this.wagonAngle += 1.5 * dt;
+        }
+
+        if (this.gui.isKeyPressed("KeyD")) {
+            this.wagonAngle -= 1.5 * dt;
+        }
+
+        this.wagonSpeed -= 3 * dt;
+        if (this.wagonSpeed < 0) this.wagonSpeed = 0;
+        if (this.wagonSpeed > 25) this.wagonSpeed = 25;
+
+        this.wagonX += Math.sin(this.wagonAngle) * this.wagonSpeed * dt;
+        this.wagonZ += Math.cos(this.wagonAngle) * this.wagonSpeed * dt;
+    }
+
     update(t) {
         if (this.grassStartTime === 0) {
             this.grassStartTime = t;
@@ -445,6 +478,26 @@ export class MyScene extends CGFscene {
             time: (t - this.grassStartTime) / 1000,
         });
 
+        this.checkKeys(dt);
+
+        if (this.useFollowCamera) {
+            const backDist = 15;
+            const upDist = 8;
+            const fwdX = Math.sin(this.wagonAngle);
+            const fwdZ = Math.cos(this.wagonAngle);
+
+            this.camera.position = vec3.fromValues(
+                this.wagonX - fwdX * backDist,
+                this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + upDist,
+                this.wagonZ - fwdZ * backDist
+            );
+
+            this.camera.target = vec3.fromValues(
+                this.wagonX,
+                this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 2,
+                this.wagonZ
+            );
+        }
     }
 
     display() {
@@ -639,9 +692,10 @@ export class MyScene extends CGFscene {
         // Draw wagon near origin for testing
         if (this.showWagon) {
             this.pushMatrix();
-            // place wagon near origin at ground level for testing
-            this.translate(0, 20, 0);
-            this.scale(1.0, 1.0, 1.0);
+            const wagonY = this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
+            this.translate(this.wagonX, wagonY, this.wagonZ);
+            this.rotate(this.wagonAngle, 0, 1, 0);
+            this.rotate(Math.PI / 2, 0, 1, 0);
             this.wagon.display();
             this.popMatrix();
         }
