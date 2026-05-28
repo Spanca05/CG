@@ -68,6 +68,9 @@ export class MyScene extends CGFscene {
         this.wagonSpeed = 0;
 
         this.useFollowCamera = true;
+
+        this.wheelRotationDeg = 0;
+        this.wagonSteerAngle = 0;
     }
 
     init(application) {
@@ -443,12 +446,18 @@ export class MyScene extends CGFscene {
             if (this.wagonSpeed < 0) this.wagonSpeed = 0;
         }
 
+        const maxSteer = Math.PI / 6;
+
         if (this.gui.isKeyPressed("KeyA")) {
             this.wagonAngle += 1.5 * dt;
+            this.wagonSteerAngle = Math.min(maxSteer, this.wagonSteerAngle + 2 * dt);
         }
-
-        if (this.gui.isKeyPressed("KeyD")) {
+        else if (this.gui.isKeyPressed("KeyD")) {
             this.wagonAngle -= 1.5 * dt;
+            this.wagonSteerAngle = Math.max(-maxSteer, this.wagonSteerAngle - 2 * dt);
+        }
+        else {
+            this.wagonSteerAngle *= 0.85;
         }
 
         this.wagonSpeed -= 3 * dt;
@@ -479,6 +488,9 @@ export class MyScene extends CGFscene {
         });
 
         this.checkKeys(dt);
+
+        const wheelCircumference = 2 * Math.PI * 0.45;
+        this.wheelRotationDeg += this.wagonSpeed * dt * (360 / wheelCircumference);
 
         if (this.useFollowCamera) {
             const backDist = 15;
