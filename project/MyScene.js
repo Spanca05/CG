@@ -71,6 +71,10 @@ export class MyScene extends CGFscene {
 
         this.wheelRotationDeg = 0;
         this.wagonSteerAngle = 0;
+
+        this.wagonCenterY = 0;
+        this.wagonPitch = 0;
+        this.wagonRoll = 0;
     }
 
     init(application) {
@@ -489,6 +493,22 @@ export class MyScene extends CGFscene {
 
         this.checkKeys(dt);
 
+        const axleHalfLen = 1.6;
+        const axleHalfWidth = 1.3;
+        const fwdX = Math.sin(this.wagonAngle);
+        const fwdZ = Math.cos(this.wagonAngle);
+        const rgtX = Math.cos(this.wagonAngle);
+        const rgtZ = -Math.sin(this.wagonAngle);
+
+        const hFront = this.terrain.getHeight(this.wagonX + fwdX * axleHalfLen, this.wagonZ + fwdZ * axleHalfLen) - 1;
+        const hBack = this.terrain.getHeight(this.wagonX - fwdX * axleHalfLen, this.wagonZ - fwdZ * axleHalfLen) - 1;
+        const hRight = this.terrain.getHeight(this.wagonX + rgtX * axleHalfWidth, this.wagonZ + rgtZ * axleHalfWidth) - 1;
+        const hLeft = this.terrain.getHeight(this.wagonX - rgtX * axleHalfWidth, this.wagonZ - rgtZ * axleHalfWidth) - 1;
+
+        this.wagonCenterY = (hFront + hBack) / 2 + 0.45;
+        this.wagonPitch = Math.atan2(hBack - hFront, 2 * axleHalfLen);
+        this.wagonRoll = Math.atan2(hLeft - hRight, 2 * axleHalfWidth);
+
         const wheelCircumference = 2 * Math.PI * 0.45;
         this.wheelRotationDeg += this.wagonSpeed * dt * (360 / wheelCircumference);
 
@@ -702,16 +722,26 @@ export class MyScene extends CGFscene {
 
 
         // Draw wagon near origin for testing
+        //if (this.showWagon) {
+        //    this.pushMatrix();
+        //    const wagonY = this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
+        //    this.translate(this.wagonX, wagonY, this.wagonZ);
+        //    this.rotate(this.wagonAngle, 0, 1, 0);
+        //    this.rotate(Math.PI / 2, 0, 1, 0);
+        //    this.wagon.display();
+        //    this.popMatrix();
+        //}
+
         if (this.showWagon) {
             this.pushMatrix();
-            const wagonY = this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
-            this.translate(this.wagonX, wagonY, this.wagonZ);
+            this.translate(this.wagonX, this.wagonCenterY, this.wagonZ);
             this.rotate(this.wagonAngle, 0, 1, 0);
             this.rotate(Math.PI / 2, 0, 1, 0);
+            this.rotate(this.wagonPitch, 0, 0, 1);
+            this.rotate(this.wagonRoll, 1, 0, 0);
             this.wagon.display();
             this.popMatrix();
         }
-
 
     }
 }
