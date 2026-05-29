@@ -75,6 +75,9 @@ export class MyScene extends CGFscene {
         this.wagonCenterY = 0;
         this.wagonPitch = 0;
         this.wagonRoll = 0;
+
+        this.prevWagonX = 0;
+        this.prevWagonZ = 0;
     }
 
     init(application) {
@@ -440,7 +443,43 @@ export class MyScene extends CGFscene {
         );
     }
 
+    checkCollisions() {
+        const wagonRadius = 2.5;
+
+        for (const rock of this.rockField.transforms) {
+            const dx = this.wagonX - rock.x;
+            const dz = this.wagonZ - rock.z;
+            const distSq = dx * dx + dz * dz;
+            const minDist = wagonRadius + rock.scale * 0.9;
+
+            if (distSq < minDist * minDist) {
+                this.wagonX = this.prevWagonX;
+                this.wagonZ = this.prevWagonZ;
+
+                if (rock.scale < 3) this.wagonSpeed = -3;
+                else if (rock.scale < 6) this.wagonSpeed = -6;
+                else this.wagonSpeed = -10;
+
+                return;
+            }
+        }
+
+        const bdx = this.wagonX - this.barn.x;
+        const bdz = this.wagonZ - this.barn.z;
+        const barnDistSq = bdx * bdx + bdz * bdz;
+        const barnMinDist = wagonRadius + 17;
+
+        if (barnDistSq < barnMinDist * barnMinDist) {
+            this.wagonX = this.prevWagonX;
+            this.wagonZ = this.prevWagonZ;
+            this.wagonSpeed = -8;
+        }
+    }
+
     checkKeys(dt) {
+        this.prevWagonX = this.wagonX;
+        this.prevWagonZ = this.wagonZ;
+
         if (this.gui.isKeyPressed("KeyW")) {
             this.wagonSpeed += 8 * dt;
         }
@@ -464,9 +503,17 @@ export class MyScene extends CGFscene {
             this.wagonSteerAngle *= 0.85;
         }
 
-        this.wagonSpeed -= 3 * dt;
-        if (this.wagonSpeed < 0) this.wagonSpeed = 0;
+        if (this.wagonSpeed > 0) {
+            this.wagonSpeed -= 3 * dt;
+            if (this.wagonSpeed < 0) this.wagonSpeed = 0;
+        }
+        else if (this.wagonSpeed < 0) {
+            this.wagonSpeed += 8 * dt;
+            if (this.wagonSpeed > 0) this.wagonSpeed = 0;
+        }
+
         if (this.wagonSpeed > 25) this.wagonSpeed = 25;
+        if (this.wagonSpeed < -10) this.wagonSpeed = -10;
 
         this.wagonX += Math.sin(this.wagonAngle) * this.wagonSpeed * dt;
         this.wagonZ += Math.cos(this.wagonAngle) * this.wagonSpeed * dt;
@@ -492,6 +539,7 @@ export class MyScene extends CGFscene {
         });
 
         this.checkKeys(dt);
+        this.checkCollisions();
 
         const axleHalfLen = 1.6;
         const axleHalfWidth = 1.3;
