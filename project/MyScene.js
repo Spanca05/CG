@@ -71,6 +71,10 @@ export class MyScene extends CGFscene {
 
         this.wheelRotationDeg = 0;
         this.wagonSteerAngle = 0;
+        
+        this.hayBales = [];
+        this.sceneTime = 0;
+        
     }
 
     init(application) {
@@ -280,6 +284,8 @@ export class MyScene extends CGFscene {
         this.gl.uniform1fv(this.gl.getUniformLocation(prog, 'uPatchRadius'), radData);
 
         this.mipmapsReady = false;
+
+        this.spawnHayBales(12);
     }
 
     initFlowers() {
@@ -325,6 +331,30 @@ export class MyScene extends CGFscene {
             }
 
             this.flowerTypes.push({ flower, transforms });
+        }
+    }
+
+    spawnHayBales(count) {
+        const spread = this.terrain ? this.terrain.size * 0.5 : 50;
+        const maxAttempts = 30;
+        const placed = [];
+        for (let i = 0; i < count; i++) {
+            let x = 0;
+            let z = 0;
+            let ok = false;
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                const seed = (i + 1) * this.randomSeed + attempt * 23;
+                x = (this.random(seed) * 2 - 1) * spread;
+                z = (this.random(seed + 1) * 2 - 1) * spread;
+                if (!this.isValidHayPosition(x, z, 1.2, placed)) continue;
+                ok = true;
+                placed.push({ x, z });
+                break;
+            }
+            if (ok) {
+                const y = this.terrain ? this.terrain.getHeight(x, z) - 1 + 0.5 : 0.5;
+                this.hayBales.push({ id: i, x, z, y });
+            }
         }
     }
 
@@ -377,6 +407,42 @@ export class MyScene extends CGFscene {
         if (this.isPointOnPath(x, z)) return false;
         if (this.isPointInsideDirtPatch(x, z)) return false;
         // if (this.isPointNearRock(x, z)) return false;
+
+        return true;
+    }
+
+    isValidHayPosition(x, z, minDist = 1.2, placed = []) {
+        const minDistSq = minDist * minDist;
+
+        for (const point of placed) {
+            if (this.distanceSquared(x, z, point.x, point.z) < minDistSq) return false;
+        }
+
+        // avoid barn
+        if (this.barn) {
+            const dxB = x - this.barn.x;
+            const dzB = z - this.barn.z;
+            const barnR = Math.sqrt((this.barn.width / 2) ** 2 + (this.barn.length / 2) ** 2) + 4;
+            if (dxB * dxB + dzB * dzB <= barnR * barnR) return false;
+        }
+
+        // avoid wagon
+        const wx = this.wagonX || 0;
+        const wz = this.wagonZ || 0;
+        const wagonClear = 6.0;
+        const dxW = x - wx;
+        const dzW = z - wz;
+        if (dxW * dxW + dzW * dzW <= wagonClear * wagonClear) return false;
+
+        // avoid rocks from rockField.transforms
+        if (this.rockField && Array.isArray(this.rockField.transforms)) {
+            const rockClear = 6.0;
+            for (const r of this.rockField.transforms) {
+                const dxr = x - r.x;
+                const dzr = z - r.z;
+                if (dxr * dxr + dzr * dzr <= rockClear * rockClear) return false;
+            }
+        }
 
         return true;
     }
@@ -486,6 +552,9 @@ export class MyScene extends CGFscene {
         this.grassShader.setUniformsValues({
             time: (t - this.grassStartTime) / 1000,
         });
+
+        // keep a scene time for visual animations (seconds)
+        this.sceneTime = t / 1000;
 
         this.checkKeys(dt);
 
@@ -599,14 +668,13 @@ export class MyScene extends CGFscene {
         this.rotate(3 * Math.PI / 4, 0, 1, 0);
         this.barn.display();
         this.popMatrix();
-
-        this.pushMatrix();
-        const hayX = 5;
-        const hayZ = 10;
-        const hayY = 10;
-        this.translate(hayX, hayY, hayZ);
-        this.hayBale.display();
-        this.popMatrix();
+        for (const hb of this.hayBales) {
+            this.pushMatrix();
+            const bob = Math.sin(this.sceneTime * 2 + hb.id) * 0.12;
+            this.translate(hb.x, hb.y + bob, hb.z);
+            this.hayBale.display();
+            this.popMatrix();
+        }
 
         this.pushMatrix();
         this.translate(0, -1, 0);
