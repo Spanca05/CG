@@ -5,15 +5,15 @@ export class MyDropZone extends CGFobject {
   constructor(scene, radius = 4.0) {
     super(scene);
     this.radius = radius;
-    this.slices = 30; // 30 lados dá um círculo bem suave
+    this.slices = 30; 
 
-    // A Borda Elevada (usamos o teu cilindro para criar o "aro" delimitador)
+    
     this.border = new MyCylinder(scene, this.slices, 1);
 
     this.initMaterials();
-    this.initCircle(); // Constrói a geometria do chão (círculo perfeito)
+    this.initCircle(); 
 
-    // Variável de estado que controla o visual (Feedback Visual)
+    
     this.isIntersecting = false;
   }
 
@@ -23,7 +23,7 @@ export class MyDropZone extends CGFobject {
     this.normals = [];
     this.texCoords = [];
 
-    // Vértice central do círculo
+   
     this.vertices.push(0, 0, 0);
     this.normals.push(0, 1, 0);
     this.texCoords.push(0.5, 0.5);
