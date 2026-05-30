@@ -104,7 +104,7 @@ export class MyScene extends CGFscene {
         this.barn = new MyBarn(this);
 
         this.hayBale = new MyHayBale(this);
-        this.dropZone = new MyDropZone(this, 5.0);
+        this.dropZone = new MyDropZone(this, 7.0);
         this.wagon = new MyWagon(this);
 
         this.dirtPatches = [];
@@ -478,6 +478,25 @@ export class MyScene extends CGFscene {
             this.wagonSpeed = -8;
         }
     }
+    checkDropZone() {
+        if (!this.dropZone) return;
+
+        const dropZoneX = this.barn.x + 17.0;
+        const dropZoneZ = this.barn.z - 17.0;
+
+        const dx = this.wagonX - dropZoneX;
+        const dz = this.wagonZ - dropZoneZ;
+        const distSq = dx * dx + dz * dz;
+
+        const wagonRadius = 2.5; 
+        const triggerDistance = this.dropZone.radius + wagonRadius; 
+
+        if (distSq < triggerDistance * triggerDistance) {
+            this.dropZone.setIntersecting(true);
+        } else {
+            this.dropZone.setIntersecting(false);
+        }
+    }
 
     checkKeys(dt) {
         this.prevWagonX = this.wagonX;
@@ -543,6 +562,7 @@ export class MyScene extends CGFscene {
 
         this.checkKeys(dt);
         this.checkCollisions();
+        this.checkDropZone();
 
         const axleHalfLen = 1.6;
         const axleHalfWidth = 1.3;
@@ -670,17 +690,10 @@ export class MyScene extends CGFscene {
         this.rotate(3 * Math.PI / 4, 0, 1, 0);
         this.barn.display();
         this.popMatrix();
-    
-    
 
 
-        this.pushMatrix();
-        const hayX = 5;
-        const hayZ = 10;
-        const hayY = 10;
-        this.translate(hayX, hayY, hayZ);
-        this.hayBale.display();
-        this.popMatrix();
+    
+     
 
         this.pushMatrix();
         this.translate(0, -1, 0);
@@ -706,15 +719,7 @@ export class MyScene extends CGFscene {
         this.gl.disable(this.gl.POLYGON_OFFSET_FILL);
         this.setActiveShader(this.defaultShader);
         this.popMatrix();
-        
-        this.pushMatrix();
-        const dropZoneX = -10;
-        const dropZoneZ = -2;
-        const dropZoneY = this.terrain ? this.terrain.getHeight(dropZoneX, dropZoneZ) : 0;
-        this.translate(dropZoneX, dropZoneY + 0.01, dropZoneZ); 
-        this.dropZone.display();
-        this.popMatrix();
-        // dirt patches and path are now rendered as texture blends in terrain.frag
+  
 
         if (this.showGrass) {
             this.pushMatrix();
@@ -801,6 +806,20 @@ export class MyScene extends CGFscene {
             this.rotate(this.wagonPitch, 0, 0, 1);
             this.rotate(this.wagonRoll, 1, 0, 0);
             this.wagon.display();
+            this.popMatrix();
+        }
+           if (this.dropZone) {
+            this.pushMatrix();
+            
+          // esta diagonal projeta a dropzone exatamente em frente à porta principal:
+            const dropZoneX = this.barn.x + 17.0;
+            const dropZoneZ = this.barn.z - 17.0;
+            
+            const rawGroundY = this.terrain ? this.terrain.getHeight(dropZoneX, dropZoneZ) : 0;
+            
+            const dropZoneY = rawGroundY - 1 + 0.01; 
+            this.translate(dropZoneX, rawGroundY, dropZoneZ);
+            this.dropZone.display();
             this.popMatrix();
         }
 

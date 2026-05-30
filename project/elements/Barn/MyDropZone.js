@@ -2,7 +2,7 @@ import { CGFobject, CGFappearance, CGFtexture } from "../../../lib/CGF.js";
 import { MyCylinder } from "../../tps/MyCylinder.js"; 
 
 export class MyDropZone extends CGFobject {
-  constructor(scene, radius = 4.0) {
+  constructor(scene, radius = 30.0) {
     super(scene);
     this.radius = radius;
     this.slices = 30; 
@@ -65,19 +65,19 @@ export class MyDropZone extends CGFobject {
     this.borderActive.setShininess(50);
 
     this.fillNormal = new CGFappearance(this.scene);
-    this.fillNormal.setAmbient(0.9, 0.4, 0.1, 0.5);
-    this.fillNormal.setDiffuse(0.9, 0.4, 0.1, 0.5);
-    this.fillNormal.setSpecular(0.1, 0.1, 0.1, 0.5);
+    this.fillNormal.setAmbient(0.9, 0.4, 0.1, 0.2);
+    this.fillNormal.setDiffuse(0.9, 0.4, 0.1, 0.2);
+    this.fillNormal.setSpecular(0.1, 0.1, 0.1, 0.2);
     this.fillNormal.setShininess(1);
-    this.fillNormal.setEmission(0.9, 0.4, 0.1, 0.5);
+    this.fillNormal.setEmission(0.9, 0.4, 0.1, 0.2);
 
     this.fillActive = new CGFappearance(this.scene);
-    this.fillActive.setAmbient(0.2, 0.9, 0.2, 0.5);
-    this.fillActive.setDiffuse(0.2, 0.9, 0.2, 0.5);
-    this.fillActive.setSpecular(0.1, 0.1, 0.1, 0.5);
+    this.fillActive.setAmbient(0.2, 0.9, 0.2, 0.2);
+    this.fillActive.setDiffuse(0.2, 0.9, 0.2, 0.2);
+    this.fillActive.setSpecular(0.1, 0.1, 0.1, 0.2);
     this.fillActive.setShininess(1);
-    this.fillActive.setEmission(0.2, 0.9, 0.2, 0.5);
-  }
+    this.fillActive.setEmission(0.2, 0.9, 0.2, 0.2);
+   }
 
   setIntersecting(state) {
     this.isIntersecting = state;
@@ -95,8 +95,8 @@ export class MyDropZone extends CGFobject {
 
     this.scene.pushMatrix();
     this.scene.scale(this.radius, 1, this.radius);
-   
-    this.scene.rotate(-Math.PI / 2, 1, 0, 0); 
+    
+   this.scene.rotate(Math.PI , 1,0, 0); 
     super.display(); 
     this.scene.popMatrix();
 
@@ -111,9 +111,9 @@ export class MyDropZone extends CGFobject {
         this.borderNormal.apply();
     }
     
-    this.scene.scale(this.radius, 0.35, this.radius); 
+    this.scene.scale(this.radius, 0.05, this.radius); 
     
-    
+    this.scene.rotate(-Math.PI/2 , 1, 0, 0); 
     this.border.display();
     this.scene.popMatrix();
 
