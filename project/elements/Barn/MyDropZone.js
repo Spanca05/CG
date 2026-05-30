@@ -5,16 +5,14 @@ export class MyDropZone extends CGFobject {
   constructor(scene, radius = 4.0) {
     super(scene);
     this.radius = radius;
-    this.slices = 30; // 30 lados dá um círculo bem suave
+    this.slices = 30; 
 
-    // A Borda Elevada (usamos o teu cilindro para criar o "aro" delimitador)
     this.border = new MyCylinder(scene, this.slices, 1);
 
     this.initMaterials();
-    this.initCircle(); // Constrói a geometria do chão (círculo perfeito)
+    this.initCircle(); 
 
-    // Variável de estado que controla o visual (Feedback Visual)
-    this.isIntersecting = false;
+   this.isIntersecting = false;
   }
 
   initCircle() {
@@ -30,7 +28,6 @@ export class MyDropZone extends CGFobject {
 
     const alpha = (2 * Math.PI) / this.slices;
     
-    // Gera os vértices da borda
     for (let i = 0; i <= this.slices; i++) {
       const angle = i * alpha;
       this.vertices.push(Math.cos(angle), 0, Math.sin(angle));
@@ -47,21 +44,18 @@ export class MyDropZone extends CGFobject {
   }
 
   initMaterials() {
-    // 1. Material Base do Chão (Podes associar uma textura de terra aqui depois)
     this.floorApp = new CGFappearance(this.scene);
     this.floorApp.setAmbient(0.4, 0.4, 0.3, 1.0);
     this.floorApp.setDiffuse(0.6, 0.5, 0.4, 1.0);
     this.floorApp.setSpecular(0.1, 0.1, 0.1, 1.0);
     this.floorApp.setShininess(5);
 
-    // 2. Feedback Visual - ESTADO NORMAL (Laranja Suave / Madeira)
     this.borderNormal = new CGFappearance(this.scene);
     this.borderNormal.setAmbient(0.8, 0.4, 0.1, 1.0);
     this.borderNormal.setDiffuse(0.9, 0.5, 0.1, 1.0);
     this.borderNormal.setSpecular(0.2, 0.2, 0.2, 1.0);
     this.borderNormal.setShininess(10);
 
-    // 3. Feedback Visual - ESTADO ATIVO/INTERSEÇÃO (Verde "Neon" a indicar que pode largar)
     this.borderActive = new CGFappearance(this.scene);
     this.borderActive.setAmbient(0.2, 0.9, 0.2, 1.0);
     this.borderActive.setDiffuse(0.3, 1.0, 0.3, 1.0);
@@ -83,7 +77,6 @@ export class MyDropZone extends CGFobject {
     this.fillActive.setEmission(0.2, 0.9, 0.2, 0.5);
   }
 
-  // Método chamado pela lógica do jogo para mudar o visual
   setIntersecting(state) {
     this.isIntersecting = state;
   }
@@ -99,10 +92,8 @@ export class MyDropZone extends CGFobject {
 
     this.scene.scale(this.radius, 1, this.radius);
     
-    // Renderizar o círculo virado para cima
     super.display();
     
-    // Renderizar o círculo virado para baixo (rodar 180 graus em torno do eixo X)
     this.scene.pushMatrix();
     this.scene.rotate(Math.PI, 1, 0, 0);
     super.display();
@@ -113,17 +104,14 @@ export class MyDropZone extends CGFobject {
 
     this.scene.popMatrix();
 
-    // B. Desenhar o anel delimitador (Cilindro)
     this.scene.pushMatrix();
     
-    // Lógica Avançada de Visual Feedback: muda a cor com base na colisão
     if (this.isIntersecting) {
         this.borderActive.apply();
     } else {
         this.borderNormal.apply();
     }
     
-    // Fazemos o cilindro ter o mesmo raio do círculo, mas ser muito baixinho (0.2 de altura)
     this.scene.scale(this.radius, 0.35, this.radius); 
     this.scene.rotate(-Math.PI / 2, 1, 0, 0); 
     this.border.display();
