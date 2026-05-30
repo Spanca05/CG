@@ -78,8 +78,8 @@ export class MyPath extends CGFobject {
             this.normals.push(0, 1, 0);
             this.normals.push(0, 1, 0);
 
-            this.texCoords.push(0, t * 4);
-            this.texCoords.push(1, t * 4);
+            this.texCoords.push(0, t * (this.length / this.width));
+            this.texCoords.push(1, t * (this.length / this.width));
         }
 
         for (let i = 0; i < this.segments; i++) {

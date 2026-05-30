@@ -17,10 +17,13 @@ import { MyGrassPatch } from "./elements/grass/MyGrassPatch.js";
 import { MyGrassField } from "./elements/grass/MyGrassField.js";
 import { MyPath } from "./MyPath.js";
 import { MyDirtPatch } from "./elements/MyDirtPatch.js";
+import { MyRockField } from "./elements/MyRockField.js";
 import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
 import { MyHayBale } from "./elements/hay/MyHayBale.js";
 import { MyDropZone } from "./elements/Barn/MyDropZone.js";
+import { gui } from "../lib/dat.gui.module.min.js";
+
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -57,10 +60,26 @@ export class MyScene extends CGFscene {
         this.randomSeed = Date.now();
 
 
-    this.showWagon = true;
-    
+        this.showWagon = true;
 
         this.grassStartTime = 0;
+
+        this.wagonX = 0;
+        this.wagonZ = 0;
+        this.wagonAngle = 0;
+        this.wagonSpeed = 0;
+
+        this.useFollowCamera = true;
+
+        this.wheelRotationDeg = 0;
+        this.wagonSteerAngle = 0;
+
+        this.wagonCenterY = 0;
+        this.wagonPitch = 0;
+        this.wagonRoll = 0;
+
+        this.prevWagonX = 0;
+        this.prevWagonZ = 0;
     }
 
     init(application) {
@@ -79,17 +98,37 @@ export class MyScene extends CGFscene {
         this.sky = new MySky(this, 40, 20);
         this.clouds = new MyClouds(this, 40, 20);
         this.sunMarker = new MySun(this, 24, 24);
-        this.terrain = new MyTerrain(this, 420, 120, 1.2);    
+        this.terrain = new MyTerrain(this, 420, 120, 20, 0.015);
 
+        this.path = new MyPath(this, this.terrain, 500, 14, 150, 0.32);
         this.barn = new MyBarn(this);
+
         this.hayBale = new MyHayBale(this);
         this.dropZone = new MyDropZone(this, 5.0);
-        this.rocks = [];
-        this.rocks.push(new MyRock(this, 16, 10, 1));
-        this.rocks.push(new MyRock(this, 12, 8, 2));
-        this.rocks.push(new MyRock(this, 14, 9, 3));
-        this.rocks.push(new MyRock(this, 13, 9, 4));
-        this.rocks.push(new MyRock(this, 15, 10, 5));
+        this.wagon = new MyWagon(this);
+
+        this.dirtPatches = [];
+        const spread = this.terrain.size * 0.9; // place patches within 90% of terrain, away from edges
+        for (let i = 0; i < 32; i++) {
+            const seed = i * 37 + 13;
+            const x = (this.random(seed) - 0.5) * spread;
+            const z = (this.random(seed + 7) - 0.5) * spread;
+            const radius = 2.0 + this.random(seed + 11) * 6.0;
+            this.dirtPatches.push(new MyDirtPatch(this, this.terrain, x, z, radius));
+        }
+
+        this.rock = new MyRock(this, 20, 14, 1);
+        this.rockField = new MyRockField(
+            this,
+            this.rock,
+            this.terrain,
+            this.path,
+            40,
+            300,
+            0.05,
+            this.dirtPatches,
+            this.barn,
+        );
 
         this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18, 8);
         this.grassPatch = new MyGrassPatch(this, this.grassBlade, 180, 2.2, 0.34);
@@ -106,7 +145,9 @@ export class MyScene extends CGFscene {
             0.02,
             0.35,
             this.path,
-            2.0
+            2.0,
+            this.dirtPatches,
+            this.barn,
         );
 
         this.deadGrassField = new MyGrassField(
@@ -120,29 +161,10 @@ export class MyScene extends CGFscene {
             0.025,
             0.45,
             this.path,
-            2.0
+            2.0,
+            this.dirtPatches,
+            this.barn,
         );
-
-        this.path = new MyPath(this, this.terrain, 500, 14, 44, 0.32);
-
-        this.dirtPatches = [];
-        const dirtCount = 32;
-        const half = this.terrain.size / 2;
-        for (let i = 0; i < dirtCount; i++) {
-            const seed = i * 37 + 13;
-            const x = this.random(seed) * (this.terrain.size * 0.9) - half * 0.9;
-            const z = this.random(seed + 7) * (this.terrain.size * 0.9) - half * 0.9;
-            const radius = 2.0 + this.random(seed + 11) * 6.0;
-            const rotation = this.random(seed + 19) * Math.PI * 2;
-            this.dirtPatches.push(
-                new MyDirtPatch(this, this.terrain, x, z, radius, rotation, 24, 0.05),
-            );
-        }
-  
-
-    // Wagon
-    this.wagon = new MyWagon(this);
-
 
         this.flowersNum = 10;
         this.initFlowers();
@@ -174,7 +196,7 @@ export class MyScene extends CGFscene {
         this.cloudAppearance.setTexture(this.cloudTexture);
         this.cloudAppearance.setTextureWrap("REPEAT", "REPEAT");
 
-    this.setUpdatePeriod(1);
+        this.setUpdatePeriod(1);
 
         this.terrainAppearance = new CGFappearance(this);
         this.terrainTexture = new CGFtexture(this, "./textures/grass.webp");
@@ -187,11 +209,11 @@ export class MyScene extends CGFscene {
         this.terrainAppearance.setTextureWrap("REPEAT", "REPEAT");
 
         this.pathAppearance = new CGFappearance(this);
-        this.pathAppearance.setAmbient(0.32, 0.24, 0.14, 1);
-        this.pathAppearance.setDiffuse(0.48, 0.36, 0.2, 1);
+        this.pathAppearance.setAmbient(0.9, 0.9, 0.9, 1);
+        this.pathAppearance.setDiffuse(1.0, 1.0, 1.0, 1);
         this.pathAppearance.setSpecular(0.02, 0.02, 0.02, 1);
         this.pathAppearance.setShininess(3);
-        this.pathTexture = new CGFtexture(this, "./textures/ground.jpg");
+        this.pathTexture = new CGFtexture(this, "./textures/stone-pavement.jpg");
         this.pathAppearance.setTexture(this.pathTexture);
         this.pathAppearance.setTextureWrap("REPEAT", "REPEAT");
 
@@ -227,6 +249,47 @@ export class MyScene extends CGFscene {
             windStrength: 0.18,
             windSpeed: 1.4,
         });
+
+        this.rockShader = new CGFshader(
+            this.gl,
+            "shaders/rock.vert",
+            "shaders/rock.frag",
+        );
+
+        this.rockShader.setUniformsValues({
+            uNoiseScale: 3.5,
+            uNoiseStrength: 0.45,
+            baseColor: [0.48, 0.45, 0.42],
+        });
+
+        this.terrainShader = new CGFshader(
+            this.gl,
+            "shaders/terrain.vert",
+            "shaders/terrain.frag",
+        );
+
+        this.terrainShader.setUniformsValues({
+            uHeightScale: this.terrain.heightScale,
+            uNoiseScale: this.terrain.noiseScale,
+            uSampler: 0,
+            uPathSampler: 1,
+            uDirtSampler: 2,
+        });
+
+        // Upload patch positions and radii as uniform arrays (raw WebGL — CGF has no array API)
+        const prog = this.terrainShader.program;
+        this.gl.useProgram(prog);
+        const posData = new Float32Array(32 * 2).fill(0);
+        const radData = new Float32Array(32).fill(-2.0); // -2 = inactive (blend → 0)
+        for (let i = 0; i < Math.min(this.dirtPatches.length, 32); i++) {
+            posData[i * 2] = this.dirtPatches[i].centerX;
+            posData[i * 2 + 1] = this.dirtPatches[i].centerZ;
+            radData[i] = this.dirtPatches[i].radius;
+        }
+        this.gl.uniform2fv(this.gl.getUniformLocation(prog, 'uPatchPos'), posData);
+        this.gl.uniform1fv(this.gl.getUniformLocation(prog, 'uPatchRadius'), radData);
+
+        this.mipmapsReady = false;
     }
 
     initFlowers() {
@@ -302,16 +365,16 @@ export class MyScene extends CGFscene {
         return false;
     }
 
-    isPointNearRock(x, z, clearance = 3.5) {
-        for (let i = 0; i < this.rocks.length; i++) {
-            const rx = 5 + (i % 3) * 8;
-            const rz = 0 + Math.floor(i / 3) * 10;
-            if (this.distanceSquared(x, z, rx, rz) <= clearance * clearance)
-                return true;
-        }
+    //isPointNearRock(x, z, clearance = 3.5) {
+    //    for (let i = 0; i < this.rocks.length; i++) {
+    //        const rx = 5 + (i % 3) * 8;
+    //        const rz = 0 + Math.floor(i / 3) * 10;
+    //        if (this.distanceSquared(x, z, rx, rz) <= clearance * clearance)
+    //            return true;
+    //    }
 
-        return false;
-    }
+    //    return false;
+    //}
 
     isValidFlowerPosition(x, z, minDist, placed) {
         const minDistSq = minDist * minDist;
@@ -323,7 +386,7 @@ export class MyScene extends CGFscene {
 
         if (this.isPointOnPath(x, z)) return false;
         if (this.isPointInsideDirtPatch(x, z)) return false;
-        if (this.isPointNearRock(x, z)) return false;
+        // if (this.isPointNearRock(x, z)) return false;
 
         return true;
     }
@@ -383,6 +446,82 @@ export class MyScene extends CGFscene {
         );
     }
 
+    checkCollisions() {
+        const wagonRadius = 2.5;
+
+        for (const rock of this.rockField.transforms) {
+            const dx = this.wagonX - rock.x;
+            const dz = this.wagonZ - rock.z;
+            const distSq = dx * dx + dz * dz;
+            const minDist = wagonRadius + rock.scale * 0.9;
+
+            if (distSq < minDist * minDist) {
+                this.wagonX = this.prevWagonX;
+                this.wagonZ = this.prevWagonZ;
+
+                if (rock.scale < 3) this.wagonSpeed = -3;
+                else if (rock.scale < 6) this.wagonSpeed = -6;
+                else this.wagonSpeed = -10;
+
+                return;
+            }
+        }
+
+        const bdx = this.wagonX - this.barn.x;
+        const bdz = this.wagonZ - this.barn.z;
+        const barnDistSq = bdx * bdx + bdz * bdz;
+        const barnMinDist = wagonRadius + 17;
+
+        if (barnDistSq < barnMinDist * barnMinDist) {
+            this.wagonX = this.prevWagonX;
+            this.wagonZ = this.prevWagonZ;
+            this.wagonSpeed = -8;
+        }
+    }
+
+    checkKeys(dt) {
+        this.prevWagonX = this.wagonX;
+        this.prevWagonZ = this.wagonZ;
+
+        if (this.gui.isKeyPressed("KeyW")) {
+            this.wagonSpeed += 8 * dt;
+        }
+
+        if (this.gui.isKeyPressed("KeyS")) {
+            this.wagonSpeed -= 12 * dt;
+            if (this.wagonSpeed < 0) this.wagonSpeed = 0;
+        }
+
+        const maxSteer = Math.PI / 6;
+
+        if (this.gui.isKeyPressed("KeyA")) {
+            this.wagonAngle += 1.5 * dt;
+            this.wagonSteerAngle = Math.min(maxSteer, this.wagonSteerAngle + 2 * dt);
+        }
+        else if (this.gui.isKeyPressed("KeyD")) {
+            this.wagonAngle -= 1.5 * dt;
+            this.wagonSteerAngle = Math.max(-maxSteer, this.wagonSteerAngle - 2 * dt);
+        }
+        else {
+            this.wagonSteerAngle *= 0.85;
+        }
+
+        if (this.wagonSpeed > 0) {
+            this.wagonSpeed -= 3 * dt;
+            if (this.wagonSpeed < 0) this.wagonSpeed = 0;
+        }
+        else if (this.wagonSpeed < 0) {
+            this.wagonSpeed += 8 * dt;
+            if (this.wagonSpeed > 0) this.wagonSpeed = 0;
+        }
+
+        if (this.wagonSpeed > 25) this.wagonSpeed = 25;
+        if (this.wagonSpeed < -10) this.wagonSpeed = -10;
+
+        this.wagonX += Math.sin(this.wagonAngle) * this.wagonSpeed * dt;
+        this.wagonZ += Math.cos(this.wagonAngle) * this.wagonSpeed * dt;
+    }
+
     update(t) {
         if (this.grassStartTime === 0) {
             this.grassStartTime = t;
@@ -401,8 +540,48 @@ export class MyScene extends CGFscene {
         this.grassShader.setUniformsValues({
             time: (t - this.grassStartTime) / 1000,
         });
-  
-  }
+
+        this.checkKeys(dt);
+        this.checkCollisions();
+
+        const axleHalfLen = 1.6;
+        const axleHalfWidth = 1.3;
+        const fwdX = Math.sin(this.wagonAngle);
+        const fwdZ = Math.cos(this.wagonAngle);
+        const rgtX = Math.cos(this.wagonAngle);
+        const rgtZ = -Math.sin(this.wagonAngle);
+
+        const hFront = this.terrain.getHeight(this.wagonX + fwdX * axleHalfLen, this.wagonZ + fwdZ * axleHalfLen) - 1;
+        const hBack = this.terrain.getHeight(this.wagonX - fwdX * axleHalfLen, this.wagonZ - fwdZ * axleHalfLen) - 1;
+        const hRight = this.terrain.getHeight(this.wagonX + rgtX * axleHalfWidth, this.wagonZ + rgtZ * axleHalfWidth) - 1;
+        const hLeft = this.terrain.getHeight(this.wagonX - rgtX * axleHalfWidth, this.wagonZ - rgtZ * axleHalfWidth) - 1;
+
+        this.wagonCenterY = (hFront + hBack) / 2 + 0.45;
+        this.wagonPitch = Math.atan2(hBack - hFront, 2 * axleHalfLen);
+        this.wagonRoll = Math.atan2(hLeft - hRight, 2 * axleHalfWidth);
+
+        const wheelCircumference = 2 * Math.PI * 0.45;
+        this.wheelRotationDeg += this.wagonSpeed * dt * (360 / wheelCircumference);
+
+        if (this.useFollowCamera) {
+            const backDist = 15;
+            const upDist = 8;
+            const fwdX = Math.sin(this.wagonAngle);
+            const fwdZ = Math.cos(this.wagonAngle);
+
+            this.camera.position = vec3.fromValues(
+                this.wagonX - fwdX * backDist,
+                this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + upDist,
+                this.wagonZ - fwdZ * backDist
+            );
+
+            this.camera.target = vec3.fromValues(
+                this.wagonX,
+                this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 2,
+                this.wagonZ
+            );
+        }
+    }
 
     display() {
         this.gl.viewport(0, 0, this.gl.canvas.width, this.gl.canvas.height);
@@ -461,60 +640,81 @@ export class MyScene extends CGFscene {
 
             this.popMatrix();
         }
-    
-    this.pushMatrix();
-    const barnX = -10;
-    const barnZ = -10;
-    const barnY = this.terrain ? this.terrain.getHeight(barnX, barnZ) : 0;
-    this.translate(barnX, barnY, barnZ);
-    this.barn.display();
-    this.popMatrix();
-    
-    this.pushMatrix();
-    const dropZoneX = 0;
-    const dropZoneZ = 10;
-    const dropZoneY = this.terrain ? this.terrain.getHeight(dropZoneX, dropZoneZ) : 0;
-    this.translate(dropZoneX, dropZoneY + 0.01, dropZoneZ); 
-    this.dropZone.display();
-    this.popMatrix();
 
-    this.pushMatrix();
-    const hayX = 5;
-    const hayZ = 10;
-    const hayY = 10;
-    this.translate(hayX, hayY, hayZ);
-    this.hayBale.display();
-    this.popMatrix();
+        if (!this.mipmapsReady) {
+            const textures = [this.terrainTexture, this.pathTexture, this.dirtTexture];
+            if (textures.every(tex => tex.texID !== -1)) {
+                const anisoExt = this.gl.getExtension('EXT_texture_filter_anisotropic');
+                textures.forEach(tex => {
+                    this.gl.bindTexture(this.gl.TEXTURE_2D, tex.texID);
+                    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+                    this.gl.texParameteri(this.gl.TEXTURE_2D,
+                        this.gl.TEXTURE_MIN_FILTER,
+                        this.gl.LINEAR_MIPMAP_LINEAR);
+                    if (anisoExt) {
+                        const maxAniso = this.gl.getParameter(
+                            anisoExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+                        this.gl.texParameterf(this.gl.TEXTURE_2D,
+                            anisoExt.TEXTURE_MAX_ANISOTROPY_EXT,
+                            Math.min(16, maxAniso));
+                    }
+                });
+                this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+                this.mipmapsReady = true;
+            }
+        }
+
+        this.pushMatrix();
+        const barnY = this.terrain ? this.terrain.getHeight(this.barn.x, this.barn.z) - 1 : 0;
+        this.translate(this.barn.x, barnY, this.barn.z);
+        this.rotate(3 * Math.PI / 4, 0, 1, 0);
+        this.barn.display();
+        this.popMatrix();
+    
+    
+
+
+        this.pushMatrix();
+        const hayX = 5;
+        const hayZ = 10;
+        const hayY = 10;
+        this.translate(hayX, hayY, hayZ);
+        this.hayBale.display();
+        this.popMatrix();
 
         this.pushMatrix();
         this.translate(0, -1, 0);
-        this.terrainAppearance.apply();
-        this.terrain.display();
-
-        this.popMatrix();
-
-        this.pushMatrix();
-        this.dirtAppearance.apply();
-        for (const patch of this.dirtPatches) {
-            patch.display();
-        }
-        this.popMatrix();
-
-        this.pushMatrix();
-        this.pathAppearance.apply();
-        this.path.display();
-        this.popMatrix();
-
-        this.rocks.forEach((rock, i) => {
-            this.pushMatrix();
-            const x = 5 + (i % 3) * 8;
-            const z = 0 + Math.floor(i / 3) * 10;
-            this.translate(x, 1, z);
-            this.scale(2.5 - i * 0.1, 1.4, 2.0);
-            this.rockAppearance.apply();
-            rock.display();
-            this.popMatrix();
+        this.setActiveShader(this.terrainShader);
+        const terrainSunDir = this.getSunDirection();
+        this.terrainShader.setUniformsValues({
+            uLightDir: [terrainSunDir.x, terrainSunDir.y, terrainSunDir.z],
+            uLightIntensity: this.sunEnabled ? Math.max(0, this.sunIntensity) : 0.0,
         });
+        this.terrainAppearance.apply();
+        this.gl.activeTexture(this.gl.TEXTURE1);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.pathTexture.texID);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.activeTexture(this.gl.TEXTURE2);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.dirtTexture.texID);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.enable(this.gl.POLYGON_OFFSET_FILL);
+        this.gl.polygonOffset(2, 2);
+        this.terrain.display();
+        this.gl.disable(this.gl.POLYGON_OFFSET_FILL);
+        this.setActiveShader(this.defaultShader);
+        this.popMatrix();
+        
+        this.pushMatrix();
+        const dropZoneX = -10;
+        const dropZoneZ = -2;
+        const dropZoneY = this.terrain ? this.terrain.getHeight(dropZoneX, dropZoneZ) : 0;
+        this.translate(dropZoneX, dropZoneY + 0.01, dropZoneZ); 
+        this.dropZone.display();
+        this.popMatrix();
+        // dirt patches and path are now rendered as texture blends in terrain.frag
 
         if (this.showGrass) {
             this.pushMatrix();
@@ -522,6 +722,12 @@ export class MyScene extends CGFscene {
             this.scale(this.grassScale, this.grassScale, this.grassScale);
 
             this.setActiveShader(this.grassShader);
+
+            const grassSunDir = this.getSunDirection();
+            this.grassShader.setUniformsValues({
+                uLightDir: [grassSunDir.x, grassSunDir.y, grassSunDir.z],
+                uLightIntensity: this.sunEnabled ? Math.max(0, this.sunIntensity) : 0.0,
+            });
 
             this.grassShader.setUniformsValues({
                 baseColor: [0.18, 0.32, 0.08],
@@ -539,6 +745,16 @@ export class MyScene extends CGFscene {
 
             this.popMatrix();
         }
+
+        this.setActiveShader(this.rockShader);
+        this.rockAppearance.apply();
+        const sunDir = this.getSunDirection();
+        this.rockShader.setUniformsValues({
+            uLightDir: [sunDir.x, sunDir.y, sunDir.z],
+            uLightIntensity: this.sunEnabled ? Math.max(0, this.sunIntensity) : 0.0,
+        });
+        this.rockField.display();
+        this.setActiveShader(this.defaultShader);
 
         if (this.showFlowers) {
             for (const flowerType of this.flowerTypes) {
@@ -564,17 +780,29 @@ export class MyScene extends CGFscene {
         if (this.displayAxis) {
             this.axis.display();
         }
-  
 
-    if (this.showWagon) {
-      this.pushMatrix();
-      this.translate(0, 20, 0);
-      this.scale(1.0, 1.0, 1.0);
-      this.wagon.display();
-      this.popMatrix();
+
+        // Draw wagon near origin for testing
+        //if (this.showWagon) {
+        //    this.pushMatrix();
+        //    const wagonY = this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
+        //    this.translate(this.wagonX, wagonY, this.wagonZ);
+        //    this.rotate(this.wagonAngle, 0, 1, 0);
+        //    this.rotate(Math.PI / 2, 0, 1, 0);
+        //    this.wagon.display();
+        //    this.popMatrix();
+        //}
+
+        if (this.showWagon) {
+            this.pushMatrix();
+            this.translate(this.wagonX, this.wagonCenterY, this.wagonZ);
+            this.rotate(this.wagonAngle, 0, 1, 0);
+            this.rotate(Math.PI / 2, 0, 1, 0);
+            this.rotate(this.wagonPitch, 0, 0, 1);
+            this.rotate(this.wagonRoll, 1, 0, 0);
+            this.wagon.display();
+            this.popMatrix();
+        }
+
     }
-    
-
-
-  }
 }

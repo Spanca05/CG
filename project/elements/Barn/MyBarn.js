@@ -5,12 +5,14 @@ import { MyBarnRoofWall } from "./MyBarnRoofWall.js";
 import { MyBarnRoof } from "./MyBarnRoof.js";
 
 export class MyBarn extends CGFobject {
-  constructor(scene) {
+  constructor(scene, x = -60, z = 100, width = 24.0, height = 12.0, length = 28.0) {
     super(scene);
 
-    this.width = 12.0;
-    this.height = 6.0;
-    this.length = 14.0;
+    this.x = x;
+    this.z = z;
+    this.width = width;
+    this.height = height;
+    this.length = length;
     
     const theta1 = (60 * Math.PI) / 180;
     const theta2 = (25 * Math.PI) / 180;

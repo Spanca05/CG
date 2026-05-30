@@ -1,22 +1,72 @@
 import { CGFobject } from "../lib/CGF.js";
 
+function fract(x) { return x - Math.floor(x); }
+
+function hash3(px, py, pz) {
+    const rx = px * 127.1 + py * 311.7 + pz * 74.7;
+    const ry = px * 269.5 + py * 183.3 + pz * 246.1;
+    const rz = px * 113.5 + py * 271.9 + pz * 124.6;
+    return [
+        fract(Math.sin(rx) * 43758.5453) * 2.0 - 1.0,
+        fract(Math.sin(ry) * 43758.5453) * 2.0 - 1.0,
+        fract(Math.sin(rz) * 43758.5453) * 2.0 - 1.0,
+    ];
+}
+
+function gradientNoise(px, py, pz) {
+    const ix = Math.floor(px), iy = Math.floor(py), iz = Math.floor(pz);
+    const fx = px - ix, fy = py - iy, fz = pz - iz;
+    const ux = fx * fx * fx * (fx * (fx * 6 - 15) + 10);
+    const uy = fy * fy * fy * (fy * (fy * 6 - 15) + 10);
+    const uz = fz * fz * fz * (fz * (fz * 6 - 15) + 10);
+
+    function dot(gx, gy, gz, ox, oy, oz) {
+        const g = hash3(gx, gy, gz);
+        return g[0] * ox + g[1] * oy + g[2] * oz;
+    }
+
+    function lerp(t, a, b) { return a + t * (b - a); }
+
+    const n000 = dot(ix,   iy,   iz,   fx,   fy,   fz  );
+    const n100 = dot(ix+1, iy,   iz,   fx-1, fy,   fz  );
+    const n010 = dot(ix,   iy+1, iz,   fx,   fy-1, fz  );
+    const n110 = dot(ix+1, iy+1, iz,   fx-1, fy-1, fz  );
+    const n001 = dot(ix,   iy,   iz+1, fx,   fy,   fz-1);
+    const n101 = dot(ix+1, iy,   iz+1, fx-1, fy,   fz-1);
+    const n011 = dot(ix,   iy+1, iz+1, fx,   fy-1, fz-1);
+    const n111 = dot(ix+1, iy+1, iz+1, fx-1, fy-1, fz-1);
+
+    return lerp(uz,
+        lerp(uy, lerp(ux, n000, n100), lerp(ux, n010, n110)),
+        lerp(uy, lerp(ux, n001, n101), lerp(ux, n011, n111))
+    );
+}
+
+function fbm(px, py, pz) {
+    let total = 0, amplitude = 1, frequency = 1, maxAmplitude = 0;
+    for (let i = 0; i < 6; i++) {
+        total += gradientNoise(px * frequency, py * frequency, pz * frequency) * amplitude;
+        maxAmplitude += amplitude;
+        amplitude *= 0.5;
+        frequency *= 2;
+    }
+    return total / maxAmplitude;
+}
+
 export class MyTerrain extends CGFobject {
-    constructor(scene, size = 100, divisions = 100, heightScale = 2) {
+    constructor(scene, size = 100, divisions = 100, heightScale = 2, noiseScale = 0.008) {
         super(scene);
 
         this.size = size;
         this.divisions = divisions;
         this.heightScale = heightScale;
+        this.noiseScale = noiseScale;
 
         this.initBuffers();
     }
 
     getHeight(x, z) {
-        return (
-            Math.sin(x * 0.12) * 0.6 +
-            Math.cos(z * 0.10) * 0.5 +
-            Math.sin((x + z) * 0.05) * 0.4 
-        ) * this.heightScale;
+        return fbm(x * this.noiseScale, 0.5, z * this.noiseScale) * this.heightScale;
     }
 
     initBuffers() {
@@ -29,20 +79,19 @@ export class MyTerrain extends CGFobject {
         const step = this.size / this.divisions;
 
         for (let row = 0; row <= this.divisions; row++) {
-            const z = -halfSize + row * step;
-
             for (let col = 0; col <= this.divisions; col++) {
                 const x = -halfSize + col * step;
-                const y = this.getHeight(x, z);
+                const z = -halfSize + row * step;
 
+                const y = fbm(x * this.noiseScale, 0.5, z * this.noiseScale) * this.heightScale;
                 this.vertices.push(x, y, z);
+                this.normals.push(0, 1, 0);
 
-                this.normals.push(0, 0, 0);
-
-                const tilingFactor = 8; 
-                const u = (col / this.divisions) * tilingFactor;
-                const v = (row / this.divisions) * tilingFactor;
-                this.texCoords.push(u, v);
+                const tilingFactor = 8;
+                this.texCoords.push(
+                    (col / this.divisions) * tilingFactor,
+                    (row / this.divisions) * tilingFactor
+                );
             }
         }
 
@@ -58,39 +107,7 @@ export class MyTerrain extends CGFobject {
             }
         }
 
-        this.normals = new Array(this.vertices.length).fill(0);
-
-        for (let i = 0; i < this.indices.length; i += 3) {
-            const ia = this.indices[i] * 3;
-            const ib = this.indices[i + 1] * 3;
-            const ic = this.indices[i + 2] * 3;
-
-            const vax = this.vertices[ia], vay = this.vertices[ia + 1], vaz = this.vertices[ia + 2];
-            const vbx = this.vertices[ib], vby = this.vertices[ib + 1], vbz = this.vertices[ib + 2];
-            const vcx = this.vertices[ic], vcy = this.vertices[ic + 1], vcz = this.vertices[ic + 2];
-
-            const ux = vbx - vax, uy = vby - vay, uz = vbz - vaz;
-            const vx = vcx - vax, vy = vcy - vay, vz = vcz - vaz;
-
-            const nx = uy * vz - uz * vy;
-            const ny = uz * vx - ux * vz;
-            const nz = ux * vy - uy * vx;
-
-            this.normals[ia] += nx; this.normals[ia + 1] += ny; this.normals[ia + 2] += nz;
-            this.normals[ib] += nx; this.normals[ib + 1] += ny; this.normals[ib + 2] += nz;
-            this.normals[ic] += nx; this.normals[ic + 1] += ny; this.normals[ic + 2] += nz;
-        }
-
-        for (let i = 0; i < this.normals.length; i += 3) {
-            const nx = this.normals[i], ny = this.normals[i + 1], nz = this.normals[i + 2];
-            const len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1.0;
-            this.normals[i] = nx / len;
-            this.normals[i + 1] = ny / len;
-            this.normals[i + 2] = nz / len;
-        }
-
         this.primitiveType = this.scene.gl.TRIANGLES;
         this.initGLBuffers();
     }
 }
-

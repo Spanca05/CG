@@ -1,18 +1,13 @@
 import { CGFobject } from "../../lib/CGF.js";
 
 export class MyRock extends CGFobject {
-  constructor(scene, slices = 16, stacks = 10, seed = 1) {
+  constructor(scene, slices = 20, stacks = 14, seed = 1) {
     super(scene);
     this.slices = slices;
     this.stacks = stacks;
     this.seed = seed;
 
     this.initBuffers();
-  }
-
-  random(i) {
-    const x = Math.sin(i * 12.9898 + this.seed * 78.233) * 43758.5453;
-    return x - Math.floor(x);
   }
 
   initBuffers() {
@@ -35,21 +30,13 @@ export class MyRock extends CGFobject {
         const cosTheta = Math.cos(theta);
         const sinTheta = Math.sin(theta);
 
-        const index = stack * (this.slices + 1) + slice;
-
-        // Perturbação do raio
-        const noise = this.random(index);
-        const radius = 1.0 + (noise - 0.5) * 0.35;
-
-        const x = radius * cosPhi * cosTheta;
-        const y = radius * sinPhi;
-        const z = radius * cosPhi * sinTheta;
+        const x = cosPhi * cosTheta;
+        const y = sinPhi;
+        const z = cosPhi * sinTheta;
 
         this.vertices.push(x, y, z);
-
         const length = Math.sqrt(x * x + y * y + z * z);
         this.normals.push(x / length, y / length, z / length);
-
         this.texCoords.push(u, v);
       }
     }

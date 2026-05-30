@@ -98,6 +98,7 @@ export class MyWagon extends CGFobject {
     // Wheels - Front-left
     scene.pushMatrix();
     scene.translate(-x, wheelY, z);
+    scene.rotate(scene.wagonSteerAngle ?? 0, 0, 1, 0);
     scene.rotate(wheelRad, 0, 0, 1);
     this.wheelFL.display();
     scene.popMatrix();
@@ -105,6 +106,7 @@ export class MyWagon extends CGFobject {
     // Front-right
     scene.pushMatrix();
     scene.translate(-x, wheelY, -z);
+    scene.rotate(scene.wagonSteerAngle ?? 0, 0, 1, 0);
     scene.rotate(wheelRad, 0, 0, 1);
     this.wheelFR.display();
     scene.popMatrix();

@@ -12,6 +12,7 @@ uniform float windSpeed;
 
 varying vec2 vTexCoord;
 varying float vHeight;
+varying vec3 vNormal;
 
 void main() {
     vec3 position = aVertexPosition;
@@ -24,6 +25,7 @@ void main() {
 
     vTexCoord = aTextureCoord;
     vHeight = heightFactor;
+    vNormal = normalize(vec3(uNMatrix * vec4(aVertexNormal, 0.0)));
 
     gl_Position = uPMatrix * uMVMatrix * vec4(position, 1.0);
 }
