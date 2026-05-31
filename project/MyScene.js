@@ -21,6 +21,9 @@ import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
 import { MyHayBale } from "./elements/hay/MyHayBale.js";
 import { MyDropZone } from "./elements/Barn/MyDropZone.js";
+import { gui } from "../lib/dat.gui.module.min.js";
+import { MyHorse } from "./elements/Horse/MyHorse.js";
+
 
 export class MyScene extends CGFscene {
     constructor() {
@@ -83,13 +86,33 @@ export class MyScene extends CGFscene {
 
         this.barn = new MyBarn(this);
         this.hayBale = new MyHayBale(this);
-        this.dropZone = new MyDropZone(this, 5.0);
-        this.rocks = [];
-        this.rocks.push(new MyRock(this, 16, 10, 1));
-        this.rocks.push(new MyRock(this, 12, 8, 2));
-        this.rocks.push(new MyRock(this, 14, 9, 3));
-        this.rocks.push(new MyRock(this, 13, 9, 4));
-        this.rocks.push(new MyRock(this, 15, 10, 5));
+        this.dropZone = new MyDropZone(this, 7.0);
+        this.wagon = new MyWagon(this);
+        this.horse = new MyHorse(this);
+
+
+        this.dirtPatches = [];
+        const spread = this.terrain.size * 0.9; // place patches within 90% of terrain, away from edges
+        for (let i = 0; i < 32; i++) {
+            const seed = i * 37 + 13;
+            const x = (this.random(seed) - 0.5) * spread;
+            const z = (this.random(seed + 7) - 0.5) * spread;
+            const radius = 2.0 + this.random(seed + 11) * 6.0;
+            this.dirtPatches.push(new MyDirtPatch(this, this.terrain, x, z, radius));
+        }
+
+        this.rock = new MyRock(this, 20, 14, 1);
+        this.rockField = new MyRockField(
+            this,
+            this.rock,
+            this.terrain,
+            this.path,
+            40,
+            300,
+            0.05,
+            this.dirtPatches,
+            this.barn,
+        );
 
         this.grassBlade = new MyGrassBlade(this, 0.12, 1.4, 0.18, 8);
         this.grassPatch = new MyGrassPatch(this, this.grassBlade, 180, 2.2, 0.34);
@@ -564,17 +587,36 @@ export class MyScene extends CGFscene {
         if (this.displayAxis) {
             this.axis.display();
         }
-  
 
-    if (this.showWagon) {
-      this.pushMatrix();
-      this.translate(0, 20, 0);
-      this.scale(1.0, 1.0, 1.0);
-      this.wagon.display();
-      this.popMatrix();
-    }
-    
 
+        this.pushMatrix();
+        this.translate(5, 0, 0); 
+        this.horse.display();
+        this.popMatrix();
+
+        if (this.showWagon) {
+            this.pushMatrix();
+            this.translate(this.wagonX, this.wagonCenterY, this.wagonZ);
+            this.rotate(this.wagonAngle, 0, 1, 0);
+            this.rotate(Math.PI / 2, 0, 1, 0);
+            this.rotate(this.wagonPitch, 0, 0, 1);
+            this.rotate(this.wagonRoll, 1, 0, 0);
+            this.wagon.display();
+            this.popMatrix();
+        }
+           if (this.dropZone) {
+            this.pushMatrix();
+            
+            const dropZoneX = this.barn.x + 17.0;
+            const dropZoneZ = this.barn.z - 17.0;
+            
+            const rawGroundY = this.terrain ? this.terrain.getHeight(dropZoneX, dropZoneZ) : 0;
+            
+            const dropZoneY = rawGroundY - 1 + 0.01; 
+            this.translate(dropZoneX, rawGroundY, dropZoneZ);
+            this.dropZone.display();
+            this.popMatrix();
+        }
 
   }
 }
