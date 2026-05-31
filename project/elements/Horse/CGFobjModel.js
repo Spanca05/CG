@@ -1,4 +1,4 @@
-import { CGFobject } from "../../lib/CGF.js";
+import { CGFobject } from "../../../lib/CGF.js";
 
 /*
 CGFobjModel class
@@ -21,15 +21,24 @@ export class CGFobjModel extends CGFobject {
    */
   constructor(scene, modelUrl) {
     super(scene);
+    this.modelUrl = modelUrl;
     this.modelData = null;
     this.ready = false;
     (async () => {
-      const response = await fetch(modelUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
+      try {
+        const response = await fetch(modelUrl);
+        if (!response.ok) {
+          console.error(
+            `Failed to load OBJ '${modelUrl}': HTTP ${response.status}`,
+          );
+          return;
+        }
+        const text = await response.text();
+        this.loadData(text);
+        this.initBuffers();
+      } catch (err) {
+        console.error(`Error loading OBJ '${modelUrl}':`, err);
       }
-      this.loadData(await response.text());
-      this.initBuffers();
     })();
   }
 
@@ -243,6 +252,11 @@ export class CGFobjModel extends CGFobject {
     this.primitiveType = this.scene.gl.TRIANGLES;
     this.initGLBuffers();
     this.ready = true;
+    try {
+      console.log(
+        `CGFobjModel: loaded '${this.modelUrl || "<unknown>"}' vertices=${this.vertices ? this.vertices.length / 3 : 0} indices=${this.indices ? this.indices.length : 0}`,
+      );
+    } catch (e) {}
   }
 
   /*
