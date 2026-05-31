@@ -22,6 +22,7 @@ import { MyBarn } from "./elements/Barn/MyBarn.js";
 import { MyWagon } from "./elements/wagon/MyWagon.js";
 import { MyHorse } from "./elements/Horse/MyHorse.js";
 import { MyHayBale } from "./elements/hay/MyHayBale.js";
+import { MyHayArrow } from "./elements/hay/MyHayArrow.js";
 import { MyDropZone } from "./elements/Barn/MyDropZone.js";
 import { gui } from "../lib/dat.gui.module.min.js";
 
@@ -79,6 +80,26 @@ export class MyScene extends CGFscene {
 
     this.prevWagonX = 0;
     this.prevWagonZ = 0;
+
+    this.hp = 100;
+    this.hpLossPerSec = 1;
+    this.collisionDamage = 10;
+    this.healthRestore = 10;
+    this.balesAtBarn = 0;
+    this.startTime = 0;
+    this.gameActive = true;
+    this.score = 0;
+
+    this.gameTimeSeconds = 0;
+    this.instantDamage = 0;
+    this.instantRestore = 0;
+
+    this.hayCarryLimit = 3;
+    this.hayPickupRadius = 5.0;
+    this.hayVisibilityRadius = 30.0;
+    this.haySpawnCount = 8;
+    this.hayBales = [];
+    this.carriedHayBales = [];
   }
 
   init(application) {
@@ -103,6 +124,7 @@ export class MyScene extends CGFscene {
     this.barn = new MyBarn(this);
 
     this.hayBale = new MyHayBale(this);
+    this.hayArrow = new MyHayArrow(this);
     this.dropZone = new MyDropZone(this, 7.0);
     this.wagon = new MyWagon(this);
     this.horseLeft = new MyHorse(this);
@@ -175,6 +197,7 @@ export class MyScene extends CGFscene {
 
     this.flowersNum = 10;
     this.initFlowers();
+    this.initHayBales();
 
     this.skyAppearance = new CGFappearance(this);
     this.skyAppearance.setAmbient(0.7, 0.8, 1.0, 1.0);
@@ -393,6 +416,235 @@ export class MyScene extends CGFscene {
     return x - Math.floor(x);
   }
 
+  isValidHayPosition(x, z, placed, minDist = 12) {
+    if (this.isPointOnPath(x, z, 2.0)) return false;
+    if (this.isPointInsideDirtPatch(x, z, 0.9)) return false;
+
+    if (this.barn) {
+      const dx = x - this.barn.x;
+      const dz = z - this.barn.z;
+      const barnRadius = Math.max(this.barn.width, this.barn.length) * 0.75;
+      if (dx * dx + dz * dz <= barnRadius * barnRadius) return false;
+    }
+
+    if (this.rockField && this.rockField.transforms) {
+      for (const rock of this.rockField.transforms) {
+        const dx = x - rock.x;
+        const dz = z - rock.z;
+        const limit = 5 + rock.scale * 0.7;
+        if (dx * dx + dz * dz <= limit * limit) return false;
+      }
+    }
+
+    const minDistSq = minDist * minDist;
+    for (const point of placed) {
+      if (this.distanceSquared(x, z, point.x, point.z) < minDistSq) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  initHayBales() {
+    this.hayBales = [];
+
+    const terrainHalf = this.terrain ? this.terrain.size / 2 : 120;
+    const spreadHalf = terrainHalf * 0.9;
+    const placed = [];
+
+    for (let i = 0; i < this.haySpawnCount; i++) {
+      const bale = {
+        id: i,
+        x: 0,
+        y: 0,
+        z: 0,
+        rotation: 0,
+        state: "ground",
+        visible: false,
+      };
+
+      if (i === 0) {
+        bale.x = 14;
+        bale.z = 18;
+        bale.y = this.terrain
+          ? this.terrain.getHeight(bale.x, bale.z) - 1 + 0.02
+          : 0;
+        bale.rotation = 0.7;
+        bale.state = "ground";
+        bale.visible = true;
+      } else {
+        this.placeHayBale(bale, placed, spreadHalf, i * 97 + 11);
+      }
+      this.hayBales.push(bale);
+      placed.push({ x: bale.x, z: bale.z });
+    }
+  }
+
+  placeHayBale(bale, placed = [], spreadHalf = 100, seed = 1) {
+    const maxAttempts = 20;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const currentSeed = seed + attempt * 31;
+      const x = (this.random(currentSeed) * 2 - 1) * spreadHalf;
+      const z = (this.random(currentSeed + 1) * 2 - 1) * spreadHalf;
+
+      if (!this.isValidHayPosition(x, z, placed)) {
+        continue;
+      }
+
+      bale.x = x;
+      bale.z = z;
+      bale.y = this.terrain ? this.terrain.getHeight(x, z) - 1 + 0.02 : 0;
+      bale.rotation = this.random(currentSeed + 2) * Math.PI * 2;
+      bale.state = "ground";
+      bale.visible = false;
+      return true;
+    }
+
+    return false;
+  }
+
+  respawnHayBale(bale) {
+    const placed = this.hayBales
+      .filter((other) => other !== bale && other.state === "ground")
+      .map((other) => ({ x: other.x, z: other.z }));
+    const terrainHalf = this.terrain ? this.terrain.size / 2 : 120;
+    const spreadHalf = terrainHalf * 0.9;
+
+    this.placeHayBale(
+      bale,
+      placed,
+      spreadHalf,
+      bale.id * 131 + this.score + 17,
+    );
+  }
+
+  getNearestGroundHayBale() {
+    let bestBale = null;
+    let bestDistSq = Infinity;
+
+    for (const bale of this.hayBales) {
+      if (bale.state !== "ground") continue;
+
+      const distSq = this.distanceSquared(
+        this.wagonX,
+        this.wagonZ,
+        bale.x,
+        bale.z,
+      );
+
+      if (distSq < bestDistSq) {
+        bestDistSq = distSq;
+        bestBale = bale;
+      }
+    }
+
+    return bestBale;
+  }
+
+  pickupHayBale() {
+    if (!this.gameActive) return;
+    if (this.carriedHayBales.length >= this.hayCarryLimit) return;
+
+    let bestBale = null;
+    let bestDistSq = this.hayPickupRadius * this.hayPickupRadius;
+
+    for (const bale of this.hayBales) {
+      if (bale.state !== "ground") continue;
+
+      const distSq = this.distanceSquared(
+        this.wagonX,
+        this.wagonZ,
+        bale.x,
+        bale.z,
+      );
+
+      if (distSq <= bestDistSq) {
+        bestDistSq = distSq;
+        bestBale = bale;
+      }
+    }
+
+    if (!bestBale) return;
+
+    bestBale.state = "carried";
+    bestBale.visible = false;
+    this.carriedHayBales.push(bestBale);
+  }
+
+  dropCarriedHayBales() {
+    if (!this.gameActive) return;
+    if (!this.dropZone || !this.dropZone.isIntersecting) return;
+    if (this.carriedHayBales.length === 0) return;
+
+    const deliveredCount = this.carriedHayBales.length;
+    const restoreAmount = deliveredCount * this.healthRestore;
+
+    this.addHP(restoreAmount, deliveredCount);
+
+    const deliveredBales = [...this.carriedHayBales];
+    this.carriedHayBales = [];
+
+    for (const bale of deliveredBales) {
+      this.respawnHayBale(bale);
+    }
+  }
+
+  displayGroundHayBales() {
+    for (const bale of this.hayBales) {
+      if (bale.state !== "ground") continue;
+
+      const distSq = this.distanceSquared(
+        this.wagonX,
+        this.wagonZ,
+        bale.x,
+        bale.z,
+      );
+      const isVisible =
+        distSq <= this.hayVisibilityRadius * this.hayVisibilityRadius;
+      const canPickup =
+        distSq <= this.hayPickupRadius * this.hayPickupRadius &&
+        this.carriedHayBales.length < this.hayCarryLimit;
+
+      if (isVisible) {
+        this.pushMatrix();
+        this.translate(bale.x, bale.y, bale.z);
+        this.rotate(bale.rotation, 0, 1, 0);
+        this.scale(0.9, 0.9, 0.9);
+        this.hayBale.display();
+        this.popMatrix();
+      }
+
+      this.pushMatrix();
+      const bob = Math.sin(this.gameTimeSeconds * 3.0 + bale.id) * 0.25;
+      const spin = this.gameTimeSeconds * 1.8 + bale.id * 0.6;
+      this.translate(bale.x, bale.y + 2.4 + bob, bale.z);
+      this.rotate(Math.PI, 1, 0, 0);
+      this.rotate(spin, 0, 1, 0);
+      this.scale(0.9, 0.9, 0.9);
+      this.hayArrow.display(canPickup);
+      this.popMatrix();
+    }
+  }
+
+  displayCarriedHayBales() {
+    for (let i = 0; i < this.carriedHayBales.length; i++) {
+      this.pushMatrix();
+
+      const xOffset = i === 0 ? -0.45 : 0.55;
+      const yOffset = 0.95 + i * 0.18;
+      const zOffset = -0.05 + i * 0.03;
+
+      this.translate(xOffset, yOffset, zOffset);
+      this.rotate((i % 2 === 0 ? -1 : 1) * 0.25, 0, 1, 0);
+      this.scale(0.7, 0.7, 0.7);
+      this.hayBale.display();
+
+      this.popMatrix();
+    }
+  }
+
   initLights() {
     this.lights[0].setVisible(false);
     this.updateSunLight();
@@ -444,6 +696,8 @@ export class MyScene extends CGFscene {
   }
 
   checkCollisions() {
+    if (!this.gameActive) return;
+
     const wagonRadius = 2.5;
 
     for (const rock of this.rockField.transforms) {
@@ -459,6 +713,12 @@ export class MyScene extends CGFscene {
         if (rock.scale < 3) this.wagonSpeed = -3;
         else if (rock.scale < 6) this.wagonSpeed = -6;
         else this.wagonSpeed = -10;
+
+        this.hp -= this.collisionDamage;
+        if (this.hp <= 0) {
+          this.hp = 0;
+          this.gameActive = false;
+        }
 
         return;
       }
@@ -496,8 +756,18 @@ export class MyScene extends CGFscene {
   }
 
   checkKeys(dt) {
+    if (!this.gameActive) return;
+
     this.prevWagonX = this.wagonX;
     this.prevWagonZ = this.wagonZ;
+
+    if (this.gui.isKeyPressed("KeyP")) {
+      this.pickupHayBale();
+    }
+
+    if (this.gui.isKeyPressed("KeyL")) {
+      this.dropCarriedHayBales();
+    }
 
     if (this.gui.isKeyPressed("KeyW")) {
       this.wagonSpeed += 8 * dt;
@@ -553,6 +823,21 @@ export class MyScene extends CGFscene {
     this.grassShader.setUniformsValues({
       time: (t - this.grassStartTime) / 1000,
     });
+
+    if (this.startTime === 0) this.startTime = t;
+
+    if (this.gameActive) {
+      this.gameTimeSeconds = (t - this.startTime) / 1000;
+      this.score = Math.floor(this.gameTimeSeconds);
+    }
+
+    if (this.gameActive) {
+      this.hp -= this.hpLossPerSec * dt;
+      if (this.hp <= 0) {
+        this.hp = 0;
+        this.gameActive = false;
+      }
+    }
 
     this.checkKeys(dt);
     this.checkCollisions();
@@ -611,6 +896,13 @@ export class MyScene extends CGFscene {
         this.wagonZ,
       );
     }
+  }
+
+  addHP(amount, baleCount = 1) {
+    if (!amount || amount <= 0) return;
+    this.hp += amount;
+    this.instantRestore = amount;
+    this.balesAtBarn += baleCount;
   }
 
   display() {
@@ -814,6 +1106,8 @@ export class MyScene extends CGFscene {
       }
     }
 
+    this.displayGroundHayBales();
+
     if (this.displayAxis) {
       this.axis.display();
     }
@@ -828,6 +1122,7 @@ export class MyScene extends CGFscene {
       this.rotate(this.wagonPitch, 0, 0, 1);
       this.rotate(this.wagonRoll, 1, 0, 0);
       this.wagon.display();
+      this.displayCarriedHayBales();
       this.popMatrix();
 
       // Draw two horses in front of the wagon

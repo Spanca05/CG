@@ -67,6 +67,14 @@ export class MyInterface extends CGFinterface {
         wagonFolder.add(this.scene, "useFollowCamera").name("Follow Camera");
         wagonFolder.open();
 
+        const gameFolder = this.gui.addFolder("Game");
+        gameFolder.add(this.scene, "hp", 0, 500).name("Health").listen();
+        gameFolder.add(this.scene, "collisionDamage").name("Collison Damage").listen();
+        gameFolder.add(this.scene, "healthRestore").name("Health Restore").listen();
+        gameFolder.add(this.scene, "balesAtBarn").name("Bales at Barn").listen();
+        gameFolder.add(this.scene, "score").name("Score ").listen();
+        gameFolder.open();
+
         this.initKeys();
 
         return true;
