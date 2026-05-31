@@ -90,26 +90,15 @@ No build step is required. The project uses native ES modules and WebGL 2.
 
 ## Screenshots
 
-> **5 screenshots are required.** 3 have been captured; add the remaining 2 before submission.
+> **5 screenshots are required.**
 
 | | |
 |---|---|
 | ![Screenshot 1](project/Screenshots/project-t11g08-1.png) | ![Screenshot 2](project/Screenshots/project-t11g08-2.png) |
-| ![Screenshot 3](project/Screenshots/project-t11g08-3.png) | *(screenshot 4 – add before submission)* |
-| *(screenshot 5 – add before submission)* | |
-
+| ![Screenshot 3](project/Screenshots/project-t11g08-3.png) | ![Screenshot 4](project/Screenshots/project-t11g08-4.gif)
 ---
 
 ## AI Use Declaration
 
 AI tools (Copilot) were used during the development of this project to assist with debugging and code suggestions. Specifically, AI was consulted to help diagnose issues in JavaScript/WebGL code, suggest fixes for shader and game-logic bugs, and assist with developing complex features and improve features.
 
----
-
-## Previous TPs
-
-- [TP1](tp1/README.md)
-- [TP2](tp2/README.md)
-- [TP3](tp3/README.md)
-- [TP4](tp4/README.md)
-- [TP5](tp5/README.md)
