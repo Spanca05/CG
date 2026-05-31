@@ -98,7 +98,7 @@ export class MyScene extends CGFscene {
     this.hayCarryLimit = 2;
     this.hayPickupRadius = 5.0;
     this.haySpawnCount = 8;
-    this.haySpawnHeight = 2.5;
+    this.haySpawnHeight = 0.0;
     this.hayBales = [];
     this.carriedHayBales = [];
   }
