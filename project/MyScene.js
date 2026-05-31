@@ -97,7 +97,6 @@ export class MyScene extends CGFscene {
     this.gameTimeSeconds = 0;
     this.hayCarryLimit = 2;
     this.hayPickupRadius = 5.0;
-    this.hayVisibilityRadius = 30.0;
     this.haySpawnCount = 8;
     this.haySpawnHeight = 2.5;
     this.hayBales = [];
@@ -566,20 +565,16 @@ export class MyScene extends CGFscene {
         bale.x,
         bale.z,
       );
-      const isVisible =
-        distSq <= this.hayVisibilityRadius * this.hayVisibilityRadius;
       const canPickup =
         distSq <= this.hayPickupRadius * this.hayPickupRadius &&
         this.carriedHayBales.length < this.hayCarryLimit;
 
-      if (isVisible) {
-        this.pushMatrix();
-        this.translate(bale.x, bale.y, bale.z);
-        this.rotate(bale.rotation, 0, 1, 0);
-        this.scale(0.9, 0.9, 0.9);
-        this.hayBale.display();
-        this.popMatrix();
-      }
+      this.pushMatrix();
+      this.translate(bale.x, bale.y, bale.z);
+      this.rotate(bale.rotation, 0, 1, 0);
+      this.scale(0.9, 0.9, 0.9);
+      this.hayBale.display();
+      this.popMatrix();
 
       this.pushMatrix();
       const bob = Math.sin(this.gameTimeSeconds * 3.0 + bale.id) * 0.25;
