@@ -764,6 +764,13 @@ export class MyScene extends CGFscene {
 
     this.wagonX += Math.sin(this.wagonAngle) * this.wagonSpeed * dt;
     this.wagonZ += Math.cos(this.wagonAngle) * this.wagonSpeed * dt;
+
+    const boundaryRadius = this.cloudsScale - 1;
+    if (this.wagonX * this.wagonX + this.wagonZ * this.wagonZ > boundaryRadius * boundaryRadius) {
+      this.wagonX = this.prevWagonX;
+      this.wagonZ = this.prevWagonZ;
+      this.wagonSpeed = -this.wagonSpeed * 0.4;
+    }
   }
 
   update(t) {
