@@ -466,30 +466,19 @@ export class MyScene extends CGFscene {
         visible: false,
       };
 
-      if (i === 0) {
-        bale.x = 14;
-        bale.z = 18;
-        bale.y = this.terrain
-          ? this.terrain.getHeight(bale.x, bale.z) - 1 + this.haySpawnHeight
-          : 0;
-        bale.rotation = 0.7;
-        bale.state = "ground";
-        bale.visible = true;
-      } else {
-        this.placeHayBale(bale, placed, spreadHalf, i * 97 + 11);
-      }
+      this.placeHayBale(bale, placed, spreadHalf);
       this.hayBales.push(bale);
       placed.push({ x: bale.x, z: bale.z });
     }
   }
 
-  placeHayBale(bale, placed = [], spreadHalf = 100, seed = 1) {
+  placeHayBale(bale, placed = [], spreadHalf = 100) {
     const maxAttempts = 20;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const currentSeed = seed + attempt * 31;
-      const x = (this.random(currentSeed) * 2 - 1) * spreadHalf;
-      const z = (this.random(currentSeed + 1) * 2 - 1) * spreadHalf;
+      const baseSeed = this.randomSeed + bale.id * 997 + attempt * 31;
+      const x = (this.random(baseSeed) * 2 - 1) * spreadHalf;
+      const z = (this.random(baseSeed + 1) * 2 - 1) * spreadHalf;
 
       if (!this.isValidHayPosition(x, z, placed)) {
         continue;
@@ -497,8 +486,10 @@ export class MyScene extends CGFscene {
 
       bale.x = x;
       bale.z = z;
-      bale.y = this.terrain ? this.terrain.getHeight(x, z) - 1 + this.haySpawnHeight : 0;
-      bale.rotation = this.random(currentSeed + 2) * Math.PI * 2;
+      bale.y = this.terrain
+        ? this.terrain.getHeight(x, z) - 1 + this.haySpawnHeight
+        : 0;
+      bale.rotation = this.random(baseSeed + 2) * Math.PI * 2;
       bale.state = "ground";
       bale.visible = false;
       return true;
@@ -514,12 +505,7 @@ export class MyScene extends CGFscene {
     const terrainHalf = this.terrain ? this.terrain.size / 2 : 120;
     const spreadHalf = terrainHalf * 0.9;
 
-    this.placeHayBale(
-      bale,
-      placed,
-      spreadHalf,
-      bale.id * 131 + this.score + 17,
-    );
+    this.placeHayBale(bale, placed, spreadHalf);
   }
 
   pickupHayBale() {
@@ -750,9 +736,7 @@ export class MyScene extends CGFscene {
     }
 
     if (this.gui.isKeyPressed("KeyW")) {
-      if (this.wagonSpeed <= this.wagonMaxSpeed)
-        this.wagonSpeed += 5 * dt;
-
+      if (this.wagonSpeed <= this.wagonMaxSpeed) this.wagonSpeed += 5 * dt;
     }
 
     if (this.gui.isKeyPressed("KeyS")) {
