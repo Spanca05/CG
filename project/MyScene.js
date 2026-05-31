@@ -276,11 +276,10 @@ export class MyScene extends CGFscene {
             uDirtSampler: 2,
         });
 
-        // Upload patch positions and radii as uniform arrays (raw WebGL — CGF has no array API)
         const prog = this.terrainShader.program;
         this.gl.useProgram(prog);
         const posData = new Float32Array(32 * 2).fill(0);
-        const radData = new Float32Array(32).fill(-2.0); // -2 = inactive (blend → 0)
+        const radData = new Float32Array(32).fill(-2.0); 
         for (let i = 0; i < Math.min(this.dirtPatches.length, 32); i++) {
             posData[i * 2] = this.dirtPatches[i].centerX;
             posData[i * 2 + 1] = this.dirtPatches[i].centerZ;
@@ -365,16 +364,6 @@ export class MyScene extends CGFscene {
         return false;
     }
 
-    //isPointNearRock(x, z, clearance = 3.5) {
-    //    for (let i = 0; i < this.rocks.length; i++) {
-    //        const rx = 5 + (i % 3) * 8;
-    //        const rz = 0 + Math.floor(i / 3) * 10;
-    //        if (this.distanceSquared(x, z, rx, rz) <= clearance * clearance)
-    //            return true;
-    //    }
-
-    //    return false;
-    //}
 
     isValidFlowerPosition(x, z, minDist, placed) {
         const minDistSq = minDist * minDist;
@@ -386,7 +375,6 @@ export class MyScene extends CGFscene {
 
         if (this.isPointOnPath(x, z)) return false;
         if (this.isPointInsideDirtPatch(x, z)) return false;
-        // if (this.isPointNearRock(x, z)) return false;
 
         return true;
     }
@@ -787,19 +775,10 @@ export class MyScene extends CGFscene {
         }
 
 
-        // Draw wagon near origin for testing
-        //if (this.showWagon) {
-        //    this.pushMatrix();
-        //    const wagonY = this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
-        //    this.translate(this.wagonX, wagonY, this.wagonZ);
-        //    this.rotate(this.wagonAngle, 0, 1, 0);
-        //    this.rotate(Math.PI / 2, 0, 1, 0);
-        //    this.wagon.display();
-        //    this.popMatrix();
-        //}
 
         if (this.showWagon) {
             this.pushMatrix();
+            const wagonY = this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
             this.translate(this.wagonX, this.wagonCenterY, this.wagonZ);
             this.rotate(this.wagonAngle, 0, 1, 0);
             this.rotate(Math.PI / 2, 0, 1, 0);
@@ -808,10 +787,10 @@ export class MyScene extends CGFscene {
             this.wagon.display();
             this.popMatrix();
         }
+        
            if (this.dropZone) {
             this.pushMatrix();
             
-          // esta diagonal projeta a dropzone exatamente em frente à porta principal:
             const dropZoneX = this.barn.x + 17.0;
             const dropZoneZ = this.barn.z - 17.0;
             
