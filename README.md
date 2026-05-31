@@ -74,9 +74,15 @@ No build step is required. The project uses native ES modules and WebGL 2.
 - Game resets automatically when health reaches zero
 
 ### Advanced features
-- **Advanced animation** – highly detailed wagon and horse movement: multi-part wagon (body, cover, axles, front/rear wheels, tongue) with front wheel steering rotation on pivot, per-wheel spin tied to speed, and terrain pitch/roll alignment; horse rendered from a loaded OBJ model with texture
-- **Advanced shaders** – visually convincing custom shaders: terrain shader with fBm-based height displacement and three-way texture blending (grass / stone path / dirt patches) driven by procedural patch positions; rock shader with noise-based colour variation; grass vertex shader with time-driven wind deformation
-- **Advanced terrain** – procedurally generated height field using fractional Brownian motion (fBm) noise evaluated on the CPU (for physics queries) and in the vertex shader (for rendering)
+- **Procedural clouds** – animated cloud layer (as a second texture) near the sky-sphere.
+- **Terrain using procedural generation** – procedurally generated height field using fractional Brownian motion (fBm) noise evaluated on the CPU (for physics queries) and in the vertex shader (for rendering).
+- **Procedural generation of items** – dynamic and procedural placement of items, such as rocks with collision detection.
+- **Procedural generation of flora items** – procedural generation of several components of flora items (flowers), with per-instance random colour variation, stem height, and petal count.
+- **Wind simulation** – custom vertex shader to simulate "wind" over grass via time-driven deformation.
+- **Highly detailed wagon** – highly detailed geometry and textures for the wagon, including multi-part animation (body, cover, axles, front/rear wheels, tongue), front wheel steering rotation on pivot, per-wheel spin tied to speed, and terrain pitch/roll alignment.
+- **Physics-based acceleration** – acceleration using physics (kinematics) for realistic wagon movement.
+- **Highly detailed barn** – highly detailed barn and circular area, featuring clear visual feedback for drop zones.
+- **Visually convincing shaders** – advanced custom shaders including terrain shader with fBm-based height displacement and three-way texture blending (grass / stone path / dirt patches), and rock shader with noise-based colour variation.
 
 ---
 
@@ -95,7 +101,7 @@ No build step is required. The project uses native ES modules and WebGL 2.
 | | |
 |---|---|
 | ![Screenshot 1](project/Screenshots/project-t11g08-1.png) | ![Screenshot 2](project/Screenshots/project-t11g08-2.png) |
-| ![Screenshot 3](project/Screenshots/project-t11g08-3.png) | ![Screenshot 4](project/Screenshots/project-t11g08-4.gif)
+| ![Screenshot 3](project/Screenshots/project-t11g08-3.png) | ![Screenshot 4](project/Screenshots/project-t11g08-4.gif) | !
 ---
 
 ## AI Use Declaration
