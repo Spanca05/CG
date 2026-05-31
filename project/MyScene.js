@@ -29,7 +29,9 @@ import { gui } from "../lib/dat.gui.module.min.js";
 export class MyScene extends CGFscene {
   constructor() {
     super();
-    this.displayAxis = true;
+
+    this.randomSeed = Date.now();
+    this.useFollowCamera = true;
 
     this.showSky = true;
     this.useSkyTexture = true;
@@ -42,14 +44,15 @@ export class MyScene extends CGFscene {
     this.lastUpdateTime = 0;
 
     this.sunEnabled = true;
-    this.sunAzimuthDeg = 45;
-    this.sunElevationDeg = 35;
-    this.sunIntensity = 1.0;
+    this.sunAzimuthDeg = 90;
+    this.sunElevationDeg = 80;
+    this.sunIntensity = 1.15;
     this.showSunMarker = true;
-    this.sunMarkerSize = 10;
+    this.sunMarkerSize = 20;
 
     this.showGrass = true;
     this.grassScale = 1.0;
+    this.grassStartTime = 0;
 
     this.showFlowers = true;
     this.flowersStemHeight = 5;
@@ -58,18 +61,17 @@ export class MyScene extends CGFscene {
     this.flowersColorVariation = 1;
     this.flowersMinDist = 0.5;
 
-    this.randomSeed = Date.now();
-
     this.showWagon = true;
-
-    this.grassStartTime = 0;
-
     this.wagonX = 0;
     this.wagonZ = 0;
     this.wagonAngle = 0;
     this.wagonSpeed = 0;
-
-    this.useFollowCamera = true;
+    this.initialWagonState = {
+      x: this.wagonX,
+      z: this.wagonZ,
+      angle: this.wagonAngle,
+      speed: this.wagonSpeed,
+    };
 
     this.wheelRotationDeg = 0;
     this.wagonSteerAngle = 0;
@@ -77,6 +79,8 @@ export class MyScene extends CGFscene {
     this.wagonCenterY = 0;
     this.wagonPitch = 0;
     this.wagonRoll = 0;
+
+    this.wagonMaxSpeed = 25;
 
     this.prevWagonX = 0;
     this.prevWagonZ = 0;
@@ -91,13 +95,11 @@ export class MyScene extends CGFscene {
     this.score = 0;
 
     this.gameTimeSeconds = 0;
-    this.instantDamage = 0;
-    this.instantRestore = 0;
-
-    this.hayCarryLimit = 3;
+    this.hayCarryLimit = 2;
     this.hayPickupRadius = 5.0;
     this.hayVisibilityRadius = 30.0;
     this.haySpawnCount = 8;
+    this.haySpawnHeight = 2.5;
     this.hayBales = [];
     this.carriedHayBales = [];
   }
@@ -468,7 +470,7 @@ export class MyScene extends CGFscene {
         bale.x = 14;
         bale.z = 18;
         bale.y = this.terrain
-          ? this.terrain.getHeight(bale.x, bale.z) - 1 + 0.02
+          ? this.terrain.getHeight(bale.x, bale.z) - 1 + this.haySpawnHeight
           : 0;
         bale.rotation = 0.7;
         bale.state = "ground";
@@ -495,7 +497,7 @@ export class MyScene extends CGFscene {
 
       bale.x = x;
       bale.z = z;
-      bale.y = this.terrain ? this.terrain.getHeight(x, z) - 1 + 0.02 : 0;
+      bale.y = this.terrain ? this.terrain.getHeight(x, z) - 1 + this.haySpawnHeight : 0;
       bale.rotation = this.random(currentSeed + 2) * Math.PI * 2;
       bale.state = "ground";
       bale.visible = false;
@@ -518,29 +520,6 @@ export class MyScene extends CGFscene {
       spreadHalf,
       bale.id * 131 + this.score + 17,
     );
-  }
-
-  getNearestGroundHayBale() {
-    let bestBale = null;
-    let bestDistSq = Infinity;
-
-    for (const bale of this.hayBales) {
-      if (bale.state !== "ground") continue;
-
-      const distSq = this.distanceSquared(
-        this.wagonX,
-        this.wagonZ,
-        bale.x,
-        bale.z,
-      );
-
-      if (distSq < bestDistSq) {
-        bestDistSq = distSq;
-        bestBale = bale;
-      }
-    }
-
-    return bestBale;
   }
 
   pickupHayBale() {
@@ -717,7 +696,8 @@ export class MyScene extends CGFscene {
         this.hp -= this.collisionDamage;
         if (this.hp <= 0) {
           this.hp = 0;
-          this.gameActive = false;
+          // reset the whole game when health reaches zero
+          this.resetGame();
         }
 
         return;
@@ -770,7 +750,9 @@ export class MyScene extends CGFscene {
     }
 
     if (this.gui.isKeyPressed("KeyW")) {
-      this.wagonSpeed += 8 * dt;
+      if (this.wagonSpeed <= this.wagonMaxSpeed)
+        this.wagonSpeed += 5 * dt;
+
     }
 
     if (this.gui.isKeyPressed("KeyS")) {
@@ -835,7 +817,8 @@ export class MyScene extends CGFscene {
       this.hp -= this.hpLossPerSec * dt;
       if (this.hp <= 0) {
         this.hp = 0;
-        this.gameActive = false;
+        // reset the game immediately when hp depletes
+        this.resetGame();
       }
     }
 
@@ -901,8 +884,35 @@ export class MyScene extends CGFscene {
   addHP(amount, baleCount = 1) {
     if (!amount || amount <= 0) return;
     this.hp += amount;
-    this.instantRestore = amount;
     this.balesAtBarn += baleCount;
+  }
+
+  resetGame() {
+    this.hp = 100;
+    this.gameActive = true;
+    this.score = 0;
+    this.gameTimeSeconds = 0;
+    this.startTime = 0;
+    this.balesAtBarn = 0;
+
+    this.wagonX = this.initialWagonState.x;
+    this.wagonZ = this.initialWagonState.z;
+    this.wagonAngle = this.initialWagonState.angle;
+    this.wagonSpeed = this.initialWagonState.speed;
+    this.wheelRotationDeg = 0;
+    this.wagonSteerAngle = 0;
+    this.wagonCenterY = 0;
+    this.wagonPitch = 0;
+    this.wagonRoll = 0;
+    this.prevWagonX = this.wagonX;
+    this.prevWagonZ = this.wagonZ;
+
+    this.carriedHayBales = [];
+    this.initHayBales();
+
+    if (this.dropZone) {
+      this.dropZone.setIntersecting(false);
+    }
   }
 
   display() {
@@ -918,6 +928,7 @@ export class MyScene extends CGFscene {
 
     if (this.showSky) {
       this.pushMatrix();
+      this.translate(0, -20, 0);
       this.scale(this.skyScale, this.skyScale, this.skyScale);
       this.skyAppearance.setTexture(
         this.useSkyTexture ? this.skyTexture : null,
@@ -929,6 +940,7 @@ export class MyScene extends CGFscene {
 
     if (this.showClouds) {
       this.pushMatrix();
+      this.translate(0, -20, 0);
       this.scale(this.cloudsScale, this.cloudsScale, this.cloudsScale);
       this.rotate((this.cloudRotationDeg * Math.PI) / 180, 0, 1, 0);
 
@@ -1114,8 +1126,6 @@ export class MyScene extends CGFscene {
 
     if (this.showWagon) {
       this.pushMatrix();
-      const wagonY =
-        this.terrain.getHeight(this.wagonX, this.wagonZ) - 1 + 0.45;
       this.translate(this.wagonX, this.wagonCenterY, this.wagonZ);
       this.rotate(this.wagonAngle, 0, 1, 0);
       this.rotate(Math.PI / 2, 0, 1, 0);
