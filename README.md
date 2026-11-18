@@ -1,12 +1,8 @@
-# CGRA 2025/2026 – Project
+# Farm Delivery — WebGL Scene
 
-**Class:** T11 &nbsp;|&nbsp; **Group:** T11G08
+Developed for the Computer Graphics (CGRA) course at FEUP (University of Porto), 2025/2026.
 
-| Name | Student Number | E-Mail |
-|---|---|---|
-| Vasco Vieira | 202307797 | up202307797@up.pt |
-| Leonardo Carvalho | 202307152 | up202307152@up.pt |
-| Tomás Costa Barros | 202303664 | up202303664@up.pt |
+**Authors:** Vasco Vieira · Leonardo Carvalho · Tomás Costa Barros
 
 ---
 
@@ -88,7 +84,6 @@ No build step is required. The project uses native ES modules and WebGL 2.
 
 ## Known Issues / Limitations
 
-- Only 3 of the 5 required screenshots have been captured so far (see below).
 - The world is bounded by a sphere but the terrain geometry extends beyond it; the terrain edge is not visually clipped.
 - Hay bale spawn placement may occasionally fail on extreme terrain heights (falls back to a floating position).
 
@@ -96,12 +91,11 @@ No build step is required. The project uses native ES modules and WebGL 2.
 
 ## Screenshots
 
-> **5 screenshots are required.**
-
 | | |
 |---|---|
 | ![Screenshot 1](project/Screenshots/project-t11g08-1.png) | ![Screenshot 2](project/Screenshots/project-t11g08-2.png) |
-| ![Screenshot 3](project/Screenshots/project-t11g08-3.png) | ![Screenshot 4](project/Screenshots/project-t11g08-4.gif) | !
+| ![Screenshot 3](project/Screenshots/project-t11g08-3.png) | ![Screenshot 4](project/Screenshots/project-t11g08-4.gif) | |
+
 ---
 
 ## AI Use Declaration
